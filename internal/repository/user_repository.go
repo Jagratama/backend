@@ -54,7 +54,7 @@ func (r *UserRepository) GetUserByEmail(ctx context.Context, email string) (*mod
 }
 
 func (r *UserRepository) CreateUser(ctx context.Context, user *model.User) (*model.User, error) {
-	err := r.db.WithContext(ctx).Create(user).Error
+	err := r.db.WithContext(ctx).Create(&user).Error
 	if err != nil {
 		return nil, err
 	}
@@ -63,7 +63,7 @@ func (r *UserRepository) CreateUser(ctx context.Context, user *model.User) (*mod
 }
 
 func (r *UserRepository) UpdateUser(ctx context.Context, user *model.User) (*model.User, error) {
-	err := r.db.WithContext(ctx).Save(user).Error
+	err := r.db.WithContext(ctx).Save(&user).Error
 	if err != nil {
 		return nil, err
 	}

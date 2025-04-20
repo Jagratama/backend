@@ -7,7 +7,7 @@ import (
 	"jagratama-backend/internal/repository"
 	"time"
 
-	"github.com/golang-jwt/jwt/v5"
+	"github.com/golang-jwt/jwt/v4"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -21,12 +21,6 @@ func NewUserService(userRepository repository.UserRepository) *UserService {
 	}
 }
 
-type JwtCustomClaims struct {
-	Name  string `json:"name"`
-	Email string `json:"email"`
-	jwt.RegisteredClaims
-}
-
 // Login logs in a user with the given email and password
 func (s *UserService) Login(ctx context.Context, email string, password string) (string, error) {
 	user, err := s.userRepository.GetUserByEmail(ctx, email)
@@ -34,14 +28,13 @@ func (s *UserService) Login(ctx context.Context, email string, password string) 
 		return "", err
 	}
 
-	fmt.Println(user.Password)
-	fmt.Println(password)
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if err != nil {
 		return "", err
 	}
 
-	claims := &JwtCustomClaims{
+	claims := &model.JwtCustomClaims{
+		int(user.ID),
 		user.Name,
 		user.Email,
 		jwt.RegisteredClaims{

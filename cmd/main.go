@@ -8,6 +8,10 @@ import (
 	"jagratama-backend/internal/repository"
 	"jagratama-backend/internal/service"
 
+	customMiddleware "jagratama-backend/internal/middleware"
+
+	"github.com/golang-jwt/jwt/v4"
+	echojwt "github.com/labstack/echo-jwt"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"gorm.io/driver/postgres"
@@ -24,7 +28,8 @@ func main() {
 	}
 
 	// Auto migrate the User table
-	if err := db.AutoMigrate(&model.User{}); err != nil {
+	err = db.AutoMigrate(&model.User{}, &model.Document{})
+	if err != nil {
 		fmt.Printf("Failed to migrate database %v", err)
 	}
 
@@ -34,23 +39,41 @@ func main() {
 	userService := service.NewUserService(*userRepository)
 	userHandler := handler.NewUserHandler(*userService)
 
+	documentRepository := repository.NewDocumentRepository(db)
+	documentService := service.NewDocumentService(*documentRepository)
+	documentHandler := handler.NewDocumentHandler(*documentService)
+
 	e := echo.New()
 
 	// Middleware
 	e.Use(middleware.Recover())
 	e.Use(middleware.Logger())
-	//e.Use(echojwt.JWT([]byte("secret")))
 
 	// Route
 	v1 := e.Group("/api/v1")
 	{
 		v1.POST("/auth/login", userHandler.Login)
 
-		v1.GET("/users", userHandler.GetAllUsers)
-		v1.POST("/users", userHandler.CreateUser)
-		v1.GET("/users/:id", userHandler.GetUserByID)
-		v1.PUT("/users/:id", userHandler.UpdateUser)
-		v1.DELETE("/users/:id", userHandler.DeleteUser)
+		v1WithAuth := v1.Group("")
+		v1WithAuth.Use(echojwt.WithConfig(echojwt.Config{
+			SigningKey: []byte("secret"),
+			NewClaimsFunc: func(c echo.Context) jwt.Claims {
+				return new(model.JwtCustomClaims)
+			},
+		}))
+		v1WithAuth.Use(customMiddleware.Auth)
+
+		v1WithAuth.GET("/users", userHandler.GetAllUsers)
+		v1WithAuth.POST("/users", userHandler.CreateUser)
+		v1WithAuth.GET("/users/:id", userHandler.GetUserByID)
+		v1WithAuth.PUT("/users/:id", userHandler.UpdateUser)
+		v1WithAuth.DELETE("/users/:id", userHandler.DeleteUser)
+
+		v1WithAuth.GET("/documents", documentHandler.GetAllDocuments)
+		v1WithAuth.GET("/documents/:slug", documentHandler.GetDocumentBySlug)
+		v1WithAuth.POST("/documents", documentHandler.CreateDocument)
+		v1WithAuth.PUT("/documents/:slug", documentHandler.UpdateDocument)
+		v1WithAuth.DELETE("/documents/:slug", documentHandler.DeleteDocument)
 	}
 
 	e.Logger.Fatal(e.Start(":8000"))
