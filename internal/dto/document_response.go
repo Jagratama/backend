@@ -16,3 +16,10 @@ type DocumentResponse struct {
 	User     UserDocumentResponse `json:"user"`
 	Category CategoryResponse     `json:"category"`
 }
+
+type DocumentProgressResponse struct {
+	Note       *string              `json:"note"`
+	Status     string               `json:"status"`
+	ResolvedAt *time.Time           `json:"resolved_at"`
+	User       UserDocumentResponse `json:"user"`
+}

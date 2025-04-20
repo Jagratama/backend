@@ -107,3 +107,19 @@ func (h *DocumentHandler) DeleteDocument(c echo.Context) error {
 
 	return helpers.SendResponseHTTP(c, http.StatusOK, "Successfully to delete document", nil)
 }
+
+func (h *DocumentHandler) GetDocumentProgress(c echo.Context) error {
+	ctx := c.Request().Context()
+	slug := c.Param("slug")
+	userID, ok := c.Get("userID").(int)
+	if !ok {
+		return helpers.SendResponseHTTP(c, http.StatusForbidden, "Unauthorized", nil)
+	}
+
+	document, err := h.documentService.GetDocumentProgress(ctx, slug, userID)
+	if err != nil {
+		return helpers.SendResponseHTTP(c, http.StatusInternalServerError, "Failed to get document progress", err.Error())
+	}
+
+	return helpers.SendResponseHTTP(c, http.StatusOK, "Successfully to get document progress", document)
+}
