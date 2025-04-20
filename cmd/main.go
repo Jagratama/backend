@@ -63,6 +63,8 @@ func main() {
 		}))
 		v1WithAuth.Use(customMiddleware.Auth)
 
+		v1WithAuth.GET("/auth/logged", userHandler.GetUserLogged)
+
 		v1WithAuth.GET("/users", userHandler.GetAllUsers)
 		v1WithAuth.POST("/users", userHandler.CreateUser)
 		v1WithAuth.GET("/users/:id", userHandler.GetUserByID)

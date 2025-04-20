@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"jagratama-backend/internal/dto"
 	"jagratama-backend/internal/model"
 	"jagratama-backend/internal/repository"
 	"time"
@@ -125,4 +126,30 @@ func (s *UserService) DeleteUser(ctx context.Context, id int) error {
 
 	user.Password = ""
 	return nil
+}
+
+func (s *UserService) GetUserLogged(ctx context.Context, id int) (*dto.UserResponse, error) {
+	user, err := s.userRepository.GetUserByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	response := &dto.UserResponse{
+		ID:         user.ID,
+		Name:       user.Name,
+		Email:      user.Email,
+		ImagePath:  user.ImagePath,
+		RoleID:     user.RoleID,
+		PositionID: user.PositionID,
+		Role: dto.Role{
+			ID:   user.Role.ID,
+			Name: user.Role.Name,
+		},
+		Position: dto.Position{
+			ID:                 user.Position.ID,
+			Name:               user.Position.Name,
+			RequiresSignatures: user.Position.RequiresSignatures,
+		},
+	}
+	return response, nil
 }

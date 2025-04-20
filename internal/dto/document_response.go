@@ -13,6 +13,6 @@ type DocumentResponse struct {
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
 
-	User     UserResponse     `json:"user"`
-	Category CategoryResponse `json:"category"`
+	User     UserDocumentResponse `json:"user"`
+	Category CategoryResponse     `json:"category"`
 }

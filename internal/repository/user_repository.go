@@ -31,7 +31,7 @@ func (r *UserRepository) GetAllUsers(ctx context.Context) ([]*model.User, error)
 func (r *UserRepository) GetUserByID(ctx context.Context, id int) (*model.User, error) {
 	var user model.User
 
-	err := r.db.Where("id = ?", id).First(&user).Error
+	err := r.db.Where("id = ?", id).Preload("Position").Preload("Role").First(&user).Error
 	if err != nil {
 		return nil, err
 	}

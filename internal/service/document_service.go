@@ -31,7 +31,7 @@ func (s *DocumentService) GetAllDocuments(ctx context.Context, userID int) ([]*d
 			Title:    document.Title,
 			Slug:     document.Slug,
 			FilePath: document.FilePath,
-			User: dto.UserResponse{
+			User: dto.UserDocumentResponse{
 				ID:        document.User.ID,
 				Name:      document.User.Name,
 				Email:     document.User.Email,
@@ -60,7 +60,7 @@ func (s *DocumentService) GetDocumentBySlug(ctx context.Context, slug string, us
 		Title:    document.Title,
 		Slug:     document.Slug,
 		FilePath: document.FilePath,
-		User: dto.UserResponse{
+		User: dto.UserDocumentResponse{
 			ID:        document.User.ID,
 			Name:      document.User.Name,
 			Email:     document.User.Email,

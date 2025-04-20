@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"jagratama-backend/internal/helpers"
 	"jagratama-backend/internal/model"
 	"jagratama-backend/internal/service"
 	"net/http"
@@ -113,4 +114,19 @@ func (h *UserHandler) DeleteUser(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, map[string]string{"message": "User deleted successfully"})
+}
+
+func (h *UserHandler) GetUserLogged(c echo.Context) error {
+	ctx := c.Request().Context()
+	userID, ok := c.Get("userID").(int)
+	if !ok {
+		return helpers.SendResponseHTTP(c, http.StatusForbidden, "Unauthorized", nil)
+	}
+
+	userLogged, err := h.userService.GetUserLogged(ctx, userID)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+
+	return c.JSON(http.StatusOK, userLogged)
 }

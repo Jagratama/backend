@@ -12,4 +12,7 @@ type User struct {
 	ImagePath  string    `json:"image_path"`
 	CreatedAt  time.Time `json:"created_at"`
 	UpdatedAt  time.Time `json:"updated_at"`
+
+	Role     Role     `json:"role" gorm:"foreignKey:RoleID"`
+	Position Position `json:"position" gorm:"foreignKey:PositionID"`
 }
