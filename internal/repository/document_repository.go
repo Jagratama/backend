@@ -21,14 +21,14 @@ func NewDocumentRepository(db *gorm.DB) *DocumentRepository {
 func (r *DocumentRepository) GetAllDocuments(ctx context.Context, userID int) ([]*model.Document, error) {
 	var documents []*model.Document
 
-	err := r.db.WithContext(ctx).Where("user_id = ?", userID).Find(&documents).Error
+	err := r.db.WithContext(ctx).Where("user_id = ?", userID).Preload("User").Preload("Category").Find(&documents).Error
 	return documents, err
 }
 
 func (r *DocumentRepository) GetDocumentByID(ctx context.Context, id int) (*model.Document, error) {
 	var document *model.Document
 
-	err := r.db.WithContext(ctx).Where("id = ?", id).First(&document).Error
+	err := r.db.WithContext(ctx).Where("id = ?", id).Preload("User").Preload("Category").First(&document).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			// Handle not found case specifically
@@ -43,7 +43,7 @@ func (r *DocumentRepository) GetDocumentByID(ctx context.Context, id int) (*mode
 func (r *DocumentRepository) GetDocumentBySlug(ctx context.Context, slug string, userID int) (*model.Document, error) {
 	var document model.Document
 
-	err := r.db.WithContext(ctx).Where("slug = ?", slug).Where("user_id", userID).First(&document).Error
+	err := r.db.WithContext(ctx).Where("slug = ?", slug).Where("user_id", userID).Preload("User").Preload("Category").First(&document).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			// Handle not found case specifically

@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"jagratama-backend/internal/dto"
 	"jagratama-backend/internal/helpers"
 	"jagratama-backend/internal/model"
 	"jagratama-backend/internal/repository"
@@ -17,14 +18,60 @@ func NewDocumentService(documentRepository repository.DocumentRepository) *Docum
 	}
 }
 
-func (s *DocumentService) GetAllDocuments(ctx context.Context, userID int) ([]*model.Document, error) {
+func (s *DocumentService) GetAllDocuments(ctx context.Context, userID int) ([]*dto.DocumentResponse, error) {
 	documents, err := s.documentRepository.GetAllDocuments(ctx, userID)
-	return documents, err
+	if err != nil {
+		return nil, err
+	}
+
+	var response []*dto.DocumentResponse
+	for _, document := range documents {
+		response = append(response, &dto.DocumentResponse{
+			ID:       document.ID,
+			Title:    document.Title,
+			Slug:     document.Slug,
+			FilePath: document.FilePath,
+			User: dto.UserResponse{
+				ID:        document.User.ID,
+				Name:      document.User.Name,
+				Email:     document.User.Email,
+				ImagePath: document.User.ImagePath,
+			},
+			Category: dto.CategoryResponse{
+				ID:   document.Category.ID,
+				Name: document.Category.Name,
+			},
+		})
+	}
+	if err != nil {
+		return nil, err
+	}
+	return response, nil
 }
 
-func (s *DocumentService) GetDocumentBySlug(ctx context.Context, slug string, userID int) (*model.Document, error) {
+func (s *DocumentService) GetDocumentBySlug(ctx context.Context, slug string, userID int) (*dto.DocumentResponse, error) {
 	document, err := s.documentRepository.GetDocumentBySlug(ctx, slug, userID)
-	return document, err
+	if err != nil {
+		return nil, err
+	}
+
+	response := &dto.DocumentResponse{
+		ID:       document.ID,
+		Title:    document.Title,
+		Slug:     document.Slug,
+		FilePath: document.FilePath,
+		User: dto.UserResponse{
+			ID:        document.User.ID,
+			Name:      document.User.Name,
+			Email:     document.User.Email,
+			ImagePath: document.User.ImagePath,
+		},
+		Category: dto.CategoryResponse{
+			ID:   document.Category.ID,
+			Name: document.Category.Name,
+		},
+	}
+	return response, err
 }
 
 func (s *DocumentService) CreateDocument(ctx context.Context, document *model.Document) (*model.Document, error) {

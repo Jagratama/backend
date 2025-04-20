@@ -28,7 +28,7 @@ func main() {
 	}
 
 	// Auto migrate the User table
-	err = db.AutoMigrate(&model.User{}, &model.Document{})
+	err = db.AutoMigrate(&model.User{}, &model.Document{}, &model.Category{})
 	if err != nil {
 		fmt.Printf("Failed to migrate database %v", err)
 	}

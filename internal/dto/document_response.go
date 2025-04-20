@@ -1,9 +1,9 @@
-package model
+package dto
 
 import "time"
 
-type Document struct {
-	ID          uint      `json:"id" gorm:"primaryKey"`
+type DocumentResponse struct {
+	ID          uint      `json:"id"`
 	UserID      uint      `json:"user_id"`
 	CategoryID  uint      `json:"category_id"`
 	Title       string    `json:"title"`
@@ -13,6 +13,6 @@ type Document struct {
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
 
-	User     User     `json:"user" gorm:"foreignKey:UserID"`
-	Category Category `json:"category" gorm:"foreignKey:CategoryID"`
+	User     UserResponse     `json:"user"`
+	Category CategoryResponse `json:"category"`
 }
