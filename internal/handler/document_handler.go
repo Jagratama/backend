@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"jagratama-backend/internal/dto"
 	"jagratama-backend/internal/helpers"
 	"jagratama-backend/internal/model"
 	"jagratama-backend/internal/service"
@@ -51,7 +52,7 @@ func (h *DocumentHandler) GetDocumentBySlug(c echo.Context) error {
 
 func (h *DocumentHandler) CreateDocument(c echo.Context) error {
 	ctx := c.Request().Context()
-	document := &model.Document{}
+	document := &dto.CreateDocumentRequest{}
 	userID, ok := c.Get("userID").(int)
 	if !ok {
 		return helpers.SendResponseHTTP(c, http.StatusForbidden, "Unauthorized", nil)

@@ -28,7 +28,7 @@ func main() {
 	}
 
 	// Auto migrate the User table
-	err = db.AutoMigrate(&model.User{}, &model.Document{}, &model.Category{})
+	err = db.AutoMigrate(&model.User{}, &model.Document{}, &model.ApprovalRequest{})
 	if err != nil {
 		fmt.Printf("Failed to migrate database %v", err)
 	}
@@ -39,8 +39,9 @@ func main() {
 	userService := service.NewUserService(*userRepository)
 	userHandler := handler.NewUserHandler(*userService)
 
+	approvalRequestRepository := repository.NewApprovalRequestRepository(db)
 	documentRepository := repository.NewDocumentRepository(db)
-	documentService := service.NewDocumentService(*documentRepository)
+	documentService := service.NewDocumentService(*documentRepository, *approvalRequestRepository)
 	documentHandler := handler.NewDocumentHandler(*documentService)
 
 	e := echo.New()

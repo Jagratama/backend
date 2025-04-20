@@ -9,12 +9,14 @@ import (
 )
 
 type DocumentService struct {
-	documentRepository repository.DocumentRepository
+	documentRepository        repository.DocumentRepository
+	approvalRequestRepository repository.ApprovalRequestRepository
 }
 
-func NewDocumentService(documentRepository repository.DocumentRepository) *DocumentService {
+func NewDocumentService(documentRepository repository.DocumentRepository, approvalRequestRepository repository.ApprovalRequestRepository) *DocumentService {
 	return &DocumentService{
-		documentRepository: documentRepository,
+		documentRepository:        documentRepository,
+		approvalRequestRepository: approvalRequestRepository,
 	}
 }
 
@@ -42,9 +44,6 @@ func (s *DocumentService) GetAllDocuments(ctx context.Context, userID int) ([]*d
 				Name: document.Category.Name,
 			},
 		})
-	}
-	if err != nil {
-		return nil, err
 	}
 	return response, nil
 }
@@ -74,14 +73,56 @@ func (s *DocumentService) GetDocumentBySlug(ctx context.Context, slug string, us
 	return response, err
 }
 
-func (s *DocumentService) CreateDocument(ctx context.Context, document *model.Document) (*model.Document, error) {
-	slug, err := helpers.GenerateSlug(document.Title)
+func (s *DocumentService) CreateDocument(ctx context.Context, documentRequest *dto.CreateDocumentRequest) (*dto.DocumentResponse, error) {
+	slug, err := helpers.GenerateSlug(documentRequest.Title)
 	if err != nil {
 		return nil, err
 	}
-	document.Slug = slug
+	documentRequest.Slug = slug
+
+	// Create the document
+	document := &model.Document{
+		UserID:      documentRequest.UserID,
+		CategoryID:  documentRequest.CategoryID,
+		Title:       documentRequest.Title,
+		Slug:        documentRequest.Slug,
+		Description: documentRequest.Description,
+		FilePath:    documentRequest.FilePath,
+	}
 	newDocument, err := s.documentRepository.CreateDocument(ctx, document)
-	return newDocument, err
+	if err != nil {
+		return nil, err
+	}
+
+	// Create approvers
+	for _, approverID := range documentRequest.Approvers {
+		approver := &model.ApprovalRequest{
+			DocumentID: newDocument.ID,
+			UserID:     approverID,
+		}
+		err = s.approvalRequestRepository.CreateDocumentApprovalRequest(ctx, approver)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	response := &dto.DocumentResponse{
+		ID:       document.ID,
+		Title:    document.Title,
+		Slug:     document.Slug,
+		FilePath: document.FilePath,
+		User: dto.UserDocumentResponse{
+			ID:        document.User.ID,
+			Name:      document.User.Name,
+			Email:     document.User.Email,
+			ImagePath: document.User.ImagePath,
+		},
+		Category: dto.CategoryResponse{
+			ID:   document.Category.ID,
+			Name: document.Category.Name,
+		},
+	}
+	return response, nil
 }
 
 func (s *DocumentService) UpdateDocument(ctx context.Context, document *model.Document, slug string, userID int) (*model.Document, error) {
