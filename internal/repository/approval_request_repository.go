@@ -31,3 +31,19 @@ func (r *ApprovalRequestRepository) GetApprovalRequestsByDocumentID(ctx context.
 	}
 	return approvalRequests, nil
 }
+
+func (r *ApprovalRequestRepository) ChangeStatusApprovalDocument(ctx context.Context, documentID int, userID int, status string) error {
+	var approvalRequest *model.ApprovalRequest
+
+	err := r.db.WithContext(ctx).Where("document_id = ?", documentID).Where("user_id = ?", userID).Where("status = ?", "pending").First(&approvalRequest).Error
+	if err != nil {
+		return err
+	}
+
+	approvalRequest.Status = status
+	err = r.db.WithContext(ctx).Save(&approvalRequest).Error
+	if err != nil {
+		return err
+	}
+	return nil
+}

@@ -172,3 +172,31 @@ func (s *DocumentService) GetDocumentProgress(ctx context.Context, slug string, 
 	}
 	return response, nil
 }
+
+func (s *DocumentService) ApproveDocument(ctx context.Context, slug string, userID int) error {
+	document, err := s.documentRepository.GetDocumentBySlug(ctx, slug, userID)
+	if err != nil {
+		return err
+	}
+
+	err = s.approvalRequestRepository.ChangeStatusApprovalDocument(ctx, int(document.ID), userID, "approved")
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *DocumentService) RejectDocument(ctx context.Context, slug string, userID int) error {
+	document, err := s.documentRepository.GetDocumentBySlug(ctx, slug, userID)
+	if err != nil {
+		return err
+	}
+
+	err = s.approvalRequestRepository.ChangeStatusApprovalDocument(ctx, int(document.ID), userID, "rejected")
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

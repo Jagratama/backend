@@ -79,6 +79,8 @@ func main() {
 		v1WithAuth.DELETE("/documents/:slug", documentHandler.DeleteDocument)
 
 		v1WithAuth.GET("/documents/:slug/progress", documentHandler.GetDocumentProgress)
+		v1WithAuth.POST("/documents/:slug/approve", documentHandler.ApproveDocument)
+		v1WithAuth.POST("/documents/:slug/reject", documentHandler.RejectDocument)
 	}
 
 	e.Logger.Fatal(e.Start(":8000"))

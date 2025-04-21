@@ -123,3 +123,35 @@ func (h *DocumentHandler) GetDocumentProgress(c echo.Context) error {
 
 	return helpers.SendResponseHTTP(c, http.StatusOK, "Successfully to get document progress", document)
 }
+
+func (h *DocumentHandler) ApproveDocument(c echo.Context) error {
+	ctx := c.Request().Context()
+	slug := c.Param("slug")
+	userID, ok := c.Get("userID").(int)
+	if !ok {
+		return helpers.SendResponseHTTP(c, http.StatusForbidden, "Unauthorized", nil)
+	}
+
+	err := h.documentService.ApproveDocument(ctx, slug, userID)
+	if err != nil {
+		return helpers.SendResponseHTTP(c, http.StatusInternalServerError, "Failed to approve document", err.Error())
+	}
+
+	return helpers.SendResponseHTTP(c, http.StatusOK, "Successfully to approve document", nil)
+}
+
+func (h *DocumentHandler) RejectDocument(c echo.Context) error {
+	ctx := c.Request().Context()
+	slug := c.Param("slug")
+	userID, ok := c.Get("userID").(int)
+	if !ok {
+		return helpers.SendResponseHTTP(c, http.StatusForbidden, "Unauthorized", nil)
+	}
+
+	err := h.documentService.RejectDocument(ctx, slug, userID)
+	if err != nil {
+		return helpers.SendResponseHTTP(c, http.StatusInternalServerError, "Failed to reject document", err.Error())
+	}
+
+	return helpers.SendResponseHTTP(c, http.StatusOK, "Successfully to reject document", nil)
+}
