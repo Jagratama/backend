@@ -74,10 +74,11 @@ func main() {
 
 		v1WithAuth.GET("/documents", documentHandler.GetAllDocuments)
 		v1WithAuth.GET("/documents/:slug", documentHandler.GetDocumentBySlug)
-		v1WithAuth.GET("/documents/:slug/progress", documentHandler.GetDocumentProgress)
 		v1WithAuth.POST("/documents", documentHandler.CreateDocument)
 		v1WithAuth.PUT("/documents/:slug", documentHandler.UpdateDocument)
 		v1WithAuth.DELETE("/documents/:slug", documentHandler.DeleteDocument)
+
+		v1WithAuth.GET("/documents/:slug/progress", documentHandler.GetDocumentProgress)
 	}
 
 	e.Logger.Fatal(e.Start(":8000"))

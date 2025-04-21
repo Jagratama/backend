@@ -140,7 +140,7 @@ func (s *DocumentService) DeleteDocument(ctx context.Context, slug string, userI
 	return err
 }
 
-func (s *DocumentService) GetDocumentProgress(ctx context.Context, slug string, userID int) ([]*dto.DocumentProgressResponse, error) {
+func (s *DocumentService) GetDocumentProgress(ctx context.Context, slug string, userID int) ([]*dto.ApprovalDocumentResponse, error) {
 	document, err := s.documentRepository.GetDocumentBySlug(ctx, slug, userID)
 	if err != nil {
 		return nil, err
@@ -155,9 +155,10 @@ func (s *DocumentService) GetDocumentProgress(ctx context.Context, slug string, 
 		return nil, nil
 	}
 
-	var response []*dto.DocumentProgressResponse
+	var response []*dto.ApprovalDocumentResponse
 	for _, approvalRequest := range approvalRequests {
-		response = append(response, &dto.DocumentProgressResponse{
+		response = append(response, &dto.ApprovalDocumentResponse{
+			ID:         approvalRequest.ID,
 			Note:       approvalRequest.Note,
 			Status:     approvalRequest.Status,
 			ResolvedAt: approvalRequest.ResolvedAt,
