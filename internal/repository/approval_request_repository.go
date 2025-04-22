@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"jagratama-backend/internal/dto"
 	"jagratama-backend/internal/model"
 
 	"gorm.io/gorm"
@@ -26,27 +25,28 @@ func (r *ApprovalRequestRepository) CreateDocumentApprovalRequest(ctx context.Co
 func (r *ApprovalRequestRepository) GetApprovalRequestsByDocumentID(ctx context.Context, documentID int) ([]*model.ApprovalRequest, error) {
 	var approvalRequests []*model.ApprovalRequest
 
-	err := r.db.WithContext(ctx).Where("document_id = ?", documentID).Preload("User").Find(&approvalRequests).Error
+	err := r.db.WithContext(ctx).
+		Where("document_id = ?", documentID).
+		Preload("User").
+		Order("id ASC").
+		Find(&approvalRequests).Error
+
 	if err != nil {
 		return nil, err
 	}
+
 	return approvalRequests, nil
 }
 
-func (r *ApprovalRequestRepository) ApprovalAction(ctx context.Context, documentID int, userID int, approvalRequestData *dto.ApprovalDocumentRequest) error {
-	var approvalRequest *model.ApprovalRequest
+func (r *ApprovalRequestRepository) UpdateApprovalRequest(ctx context.Context, documentID int, userID int, approvalData *model.ApprovalRequest) error {
+	err := r.db.WithContext(ctx).Model(&model.ApprovalRequest{}).
+		Where("document_id = ? AND user_id = ?", documentID, userID).
+		Updates(approvalData).Error
 
-	err := r.db.WithContext(ctx).Where("document_id = ?", documentID).Where("user_id = ?", userID).Where("status = ?", "pending").First(&approvalRequest).Error
 	if err != nil {
 		return err
 	}
 
-	approvalRequest.Status = approvalRequestData.Status
-	approvalRequest.Note = approvalRequestData.Note
-	err = r.db.WithContext(ctx).Save(&approvalRequest).Error
-	if err != nil {
-		return err
-	}
 	return nil
 }
 

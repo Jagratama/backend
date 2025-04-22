@@ -7,6 +7,7 @@ import (
 	"jagratama-backend/internal/helpers"
 	"jagratama-backend/internal/model"
 	"jagratama-backend/internal/repository"
+	"time"
 )
 
 type DocumentService struct {
@@ -207,7 +208,40 @@ func (s *DocumentService) ApprovalAction(ctx context.Context, slug string, userI
 		return err
 	}
 
-	err = s.approvalRequestRepository.ApprovalAction(ctx, int(document.ID), userID, approvalRequest)
+	userApprovals, err := s.approvalRequestRepository.GetApprovalRequestsByDocumentID(ctx, int(document.ID))
+	if err != nil {
+		return err
+	}
+
+	approvalData := &model.ApprovalRequest{}
+	found := false
+
+	for i, approval := range userApprovals {
+		if int(approval.User.ID) == userID {
+			found = true
+
+			if approval.Status != "pending" {
+				return fmt.Errorf("you have already approved or rejected this document")
+			}
+
+			if i != 0 && userApprovals[i-1].Status == "pending" {
+				return fmt.Errorf("the previous approver has not yet approved or rejected this document")
+			}
+
+			approvalData = approval
+			approvalData.Status = approvalRequest.Status
+			approvalData.Note = approvalRequest.Note
+			approvalData.ResolvedAt = time.Now()
+
+			break
+		}
+	}
+
+	if !found {
+		return fmt.Errorf("you are not authorized to approve this document")
+	}
+
+	err = s.approvalRequestRepository.UpdateApprovalRequest(ctx, int(document.ID), userID, approvalData)
 	if err != nil {
 		return err
 	}
