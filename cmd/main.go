@@ -81,6 +81,8 @@ func main() {
 		v1WithAuth.GET("/documents/:slug/progress", documentHandler.GetDocumentProgress)
 		v1WithAuth.POST("/documents/:slug/approve", documentHandler.ApproveDocument)
 		v1WithAuth.POST("/documents/:slug/reject", documentHandler.RejectDocument)
+
+		v1WithAuth.GET("/documents/request-reviews", documentHandler.GetDocumentApprovalRequest)
 	}
 
 	e.Logger.Fatal(e.Start(":8000"))

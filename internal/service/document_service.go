@@ -200,3 +200,33 @@ func (s *DocumentService) RejectDocument(ctx context.Context, slug string, userI
 
 	return nil
 }
+
+func (s *DocumentService) GetDocumentApprovalRequest(ctx context.Context, userID int) ([]*dto.DocumentRequestResponse, error) {
+	approvalRequests, err := s.approvalRequestRepository.GetApprovalRequest(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	var response []*dto.DocumentRequestResponse
+	for _, approvalRequest := range approvalRequests {
+		response = append(response, &dto.DocumentRequestResponse{
+			ID:       approvalRequest.Document.ID,
+			Title:    approvalRequest.Document.Title,
+			Slug:     approvalRequest.Document.Slug,
+			FilePath: approvalRequest.Document.FilePath,
+			Status:   approvalRequest.Status,
+			User: dto.UserDocumentResponse{
+				ID:        approvalRequest.Document.User.ID,
+				Name:      approvalRequest.Document.User.Name,
+				Email:     approvalRequest.Document.User.Email,
+				ImagePath: approvalRequest.Document.User.ImagePath,
+			},
+			Category: dto.CategoryResponse{
+				ID:   approvalRequest.Document.Category.ID,
+				Name: approvalRequest.Document.Category.Name,
+			},
+		})
+	}
+
+	return response, nil
+}

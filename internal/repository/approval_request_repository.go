@@ -47,3 +47,13 @@ func (r *ApprovalRequestRepository) ChangeStatusApprovalDocument(ctx context.Con
 	}
 	return nil
 }
+
+func (r *ApprovalRequestRepository) GetApprovalRequest(ctx context.Context, userID int) ([]*model.ApprovalRequest, error) {
+	var approvalRequests []*model.ApprovalRequest
+
+	err := r.db.WithContext(ctx).Where("user_id = ?", userID).Preload("Document").Preload("Document.User").Preload("Document.Category").Find(&approvalRequests).Error
+	if err != nil {
+		return nil, err
+	}
+	return approvalRequests, nil
+}
