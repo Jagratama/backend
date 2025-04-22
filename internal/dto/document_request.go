@@ -7,5 +7,5 @@ type CreateDocumentRequest struct {
 	Slug        string `json:"slug"`
 	Description string `json:"description"`
 	FilePath    string `json:"file_path"`
-	Approvers   []uint `json:"approvers"`
+	Approvers   []int  `json:"approvers"`
 }

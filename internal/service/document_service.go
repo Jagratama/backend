@@ -75,6 +75,15 @@ func (s *DocumentService) GetDocumentBySlug(ctx context.Context, slug string, us
 }
 
 func (s *DocumentService) CreateDocument(ctx context.Context, documentRequest *dto.CreateDocumentRequest) (*dto.DocumentResponse, error) {
+	// Validate approvers can't repeat
+	approverMap := make(map[int]bool)
+	for _, approverID := range documentRequest.Approvers {
+		if approverMap[approverID] {
+			return nil, fmt.Errorf("approver with ID %d already exists", approverID)
+		}
+		approverMap[approverID] = true
+	}
+
 	slug, err := helpers.GenerateSlug(documentRequest.Title)
 	if err != nil {
 		return nil, err
@@ -99,7 +108,7 @@ func (s *DocumentService) CreateDocument(ctx context.Context, documentRequest *d
 	for _, approverID := range documentRequest.Approvers {
 		approver := &model.ApprovalRequest{
 			DocumentID: newDocument.ID,
-			UserID:     approverID,
+			UserID:     uint(approverID),
 		}
 		err = s.approvalRequestRepository.CreateDocumentApprovalRequest(ctx, approver)
 		if err != nil {
