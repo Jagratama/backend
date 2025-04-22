@@ -38,6 +38,7 @@ func (s *UserService) Login(ctx context.Context, email string, password string) 
 		int(user.ID),
 		user.Name,
 		user.Email,
+		user.Role.Name,
 		jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 24)),
 		},
