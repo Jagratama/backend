@@ -64,7 +64,7 @@ func main() {
 		}))
 		v1WithAuth.Use(customMiddleware.Auth)
 
-		v1WithAuth.GET("/auth/logged", userHandler.GetUserLogged)
+		v1WithAuth.GET("/auth/me", userHandler.GetMe)
 
 		v1WithAuth.GET("/users", userHandler.GetAllUsers)
 		v1WithAuth.POST("/users", userHandler.CreateUser)
@@ -78,11 +78,10 @@ func main() {
 		v1WithAuth.PUT("/documents/:slug", documentHandler.UpdateDocument)
 		v1WithAuth.DELETE("/documents/:slug", documentHandler.DeleteDocument)
 
-		v1WithAuth.GET("/documents/:slug/progress", documentHandler.GetDocumentProgress)
-		v1WithAuth.POST("/documents/:slug/approve", documentHandler.ApproveDocument)
-		v1WithAuth.POST("/documents/:slug/reject", documentHandler.RejectDocument)
+		v1WithAuth.GET("/documents/:slug/tracking", documentHandler.GetDocumentProgress)
+		v1WithAuth.POST("/documents/:slug/approval", documentHandler.ApprovalAction)
 
-		v1WithAuth.GET("/documents/request-reviews", documentHandler.GetDocumentApprovalRequest)
+		v1WithAuth.GET("/documents/to-review", documentHandler.GetDocumentApprovalRequest)
 	}
 
 	e.Logger.Fatal(e.Start(":8000"))

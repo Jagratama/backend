@@ -128,7 +128,7 @@ func (s *UserService) DeleteUser(ctx context.Context, id int) error {
 	return nil
 }
 
-func (s *UserService) GetUserLogged(ctx context.Context, id int) (*dto.UserResponse, error) {
+func (s *UserService) GetMe(ctx context.Context, id int) (*dto.UserResponse, error) {
 	user, err := s.userRepository.GetUserByID(ctx, id)
 	if err != nil {
 		return nil, err

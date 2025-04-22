@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"jagratama-backend/internal/dto"
 	"jagratama-backend/internal/helpers"
 	"jagratama-backend/internal/model"
@@ -173,27 +174,17 @@ func (s *DocumentService) GetDocumentProgress(ctx context.Context, slug string, 
 	return response, nil
 }
 
-func (s *DocumentService) ApproveDocument(ctx context.Context, slug string, userID int) error {
+func (s *DocumentService) ApprovalAction(ctx context.Context, slug string, userID int, approvalRequest *dto.ApprovalDocumentRequest) error {
+	if approvalRequest.Status != dto.StatusApprove && approvalRequest.Status != dto.StatusReject {
+		return fmt.Errorf("invalid status: %s", approvalRequest.Status)
+	}
+
 	document, err := s.documentRepository.GetDocumentBySlug(ctx, slug, userID)
 	if err != nil {
 		return err
 	}
 
-	err = s.approvalRequestRepository.ChangeStatusApprovalDocument(ctx, int(document.ID), userID, "approved")
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (s *DocumentService) RejectDocument(ctx context.Context, slug string, userID int) error {
-	document, err := s.documentRepository.GetDocumentBySlug(ctx, slug, userID)
-	if err != nil {
-		return err
-	}
-
-	err = s.approvalRequestRepository.ChangeStatusApprovalDocument(ctx, int(document.ID), userID, "rejected")
+	err = s.approvalRequestRepository.ApprovalAction(ctx, int(document.ID), userID, approvalRequest)
 	if err != nil {
 		return err
 	}

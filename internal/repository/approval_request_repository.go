@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"jagratama-backend/internal/dto"
 	"jagratama-backend/internal/model"
 
 	"gorm.io/gorm"
@@ -32,7 +33,7 @@ func (r *ApprovalRequestRepository) GetApprovalRequestsByDocumentID(ctx context.
 	return approvalRequests, nil
 }
 
-func (r *ApprovalRequestRepository) ChangeStatusApprovalDocument(ctx context.Context, documentID int, userID int, status string) error {
+func (r *ApprovalRequestRepository) ApprovalAction(ctx context.Context, documentID int, userID int, approvalRequestData *dto.ApprovalDocumentRequest) error {
 	var approvalRequest *model.ApprovalRequest
 
 	err := r.db.WithContext(ctx).Where("document_id = ?", documentID).Where("user_id = ?", userID).Where("status = ?", "pending").First(&approvalRequest).Error
@@ -40,7 +41,8 @@ func (r *ApprovalRequestRepository) ChangeStatusApprovalDocument(ctx context.Con
 		return err
 	}
 
-	approvalRequest.Status = status
+	approvalRequest.Status = approvalRequestData.Status
+	approvalRequest.Note = approvalRequestData.Note
 	err = r.db.WithContext(ctx).Save(&approvalRequest).Error
 	if err != nil {
 		return err
