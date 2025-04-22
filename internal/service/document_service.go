@@ -12,12 +12,14 @@ import (
 type DocumentService struct {
 	documentRepository        repository.DocumentRepository
 	approvalRequestRepository repository.ApprovalRequestRepository
+	userRepository            repository.UserRepository
 }
 
-func NewDocumentService(documentRepository repository.DocumentRepository, approvalRequestRepository repository.ApprovalRequestRepository) *DocumentService {
+func NewDocumentService(documentRepository repository.DocumentRepository, approvalRequestRepository repository.ApprovalRequestRepository, userRepository repository.UserRepository) *DocumentService {
 	return &DocumentService{
 		documentRepository:        documentRepository,
 		approvalRequestRepository: approvalRequestRepository,
+		userRepository:            userRepository,
 	}
 }
 
@@ -76,12 +78,24 @@ func (s *DocumentService) GetDocumentBySlug(ctx context.Context, slug string, us
 
 func (s *DocumentService) CreateDocument(ctx context.Context, documentRequest *dto.CreateDocumentRequest) (*dto.DocumentResponse, error) {
 	// Validate approvers can't repeat
-	approverMap := make(map[int]bool)
-	for _, approverID := range documentRequest.Approvers {
-		if approverMap[approverID] {
-			return nil, fmt.Errorf("approver with ID %d already exists", approverID)
+	approverMap := make(map[string]bool)
+	approverIDs := []int{}
+	for _, approverEmail := range documentRequest.ApproverEmails {
+		if approverMap[approverEmail] {
+			return nil, fmt.Errorf("approver with ID %s already exists", approverEmail)
 		}
-		approverMap[approverID] = true
+		approverMap[approverEmail] = true
+
+		user, err := s.userRepository.GetUserByEmail(ctx, approverEmail)
+		if err != nil {
+			return nil, err
+		}
+
+		if user == nil {
+			return nil, fmt.Errorf("user with email %s not found", approverEmail)
+		}
+
+		approverIDs = append(approverIDs, int(user.ID))
 	}
 
 	slug, err := helpers.GenerateSlug(documentRequest.Title)
@@ -105,7 +119,7 @@ func (s *DocumentService) CreateDocument(ctx context.Context, documentRequest *d
 	}
 
 	// Create approvers
-	for _, approverID := range documentRequest.Approvers {
+	for _, approverID := range approverIDs {
 		approver := &model.ApprovalRequest{
 			DocumentID: newDocument.ID,
 			UserID:     uint(approverID),

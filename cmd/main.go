@@ -41,7 +41,7 @@ func main() {
 
 	approvalRequestRepository := repository.NewApprovalRequestRepository(db)
 	documentRepository := repository.NewDocumentRepository(db)
-	documentService := service.NewDocumentService(*documentRepository, *approvalRequestRepository)
+	documentService := service.NewDocumentService(*documentRepository, *approvalRequestRepository, *userRepository)
 	documentHandler := handler.NewDocumentHandler(*documentService)
 
 	e := echo.New()
