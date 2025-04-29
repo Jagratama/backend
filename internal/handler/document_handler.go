@@ -158,3 +158,16 @@ func (h *DocumentHandler) GetDocumentApprovalRequest(c echo.Context) error {
 	}
 	return helpers.SendResponseHTTP(c, http.StatusOK, "Successfully to get approval request", approvalRequests)
 }
+
+func (h *DocumentHandler) GetDocumentApprovalHistory(c echo.Context) error {
+	ctx := c.Request().Context()
+	userID, ok := c.Get("userID").(int)
+	if !ok {
+		return helpers.SendResponseHTTP(c, http.StatusForbidden, "Unauthorized", nil)
+	}
+	approvalRequests, err := h.documentService.GetDocumentApprovalHistory(ctx, userID)
+	if err != nil {
+		return helpers.SendResponseHTTP(c, http.StatusInternalServerError, "Failed to get approval request", err.Error())
+	}
+	return helpers.SendResponseHTTP(c, http.StatusOK, "Successfully to get approval request", approvalRequests)
+}

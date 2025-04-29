@@ -59,10 +59,11 @@ func (s *DocumentService) GetDocumentBySlug(ctx context.Context, slug string, us
 	}
 
 	response := &dto.DocumentResponse{
-		ID:       document.ID,
-		Title:    document.Title,
-		Slug:     document.Slug,
-		FilePath: document.FilePath,
+		ID:          document.ID,
+		Title:       document.Title,
+		Description: document.Description,
+		Slug:        document.Slug,
+		FilePath:    document.FilePath,
 		User: dto.UserDocumentResponse{
 			ID:        document.User.ID,
 			Name:      document.User.Name,
@@ -203,6 +204,10 @@ func (s *DocumentService) ApprovalAction(ctx context.Context, slug string, userI
 		return fmt.Errorf("invalid status: %s", approvalRequest.Status)
 	}
 
+	if approvalRequest.Status == dto.StatusReject && approvalRequest.Note == nil {
+		return fmt.Errorf("note is required when rejecting")
+	}
+
 	document, err := s.documentRepository.GetDocumentBySlug(ctx, slug, userID)
 	if err != nil {
 		return err
@@ -250,12 +255,64 @@ func (s *DocumentService) ApprovalAction(ctx context.Context, slug string, userI
 }
 
 func (s *DocumentService) GetDocumentApprovalRequest(ctx context.Context, userID int) ([]*dto.DocumentRequestResponse, error) {
+	myApprovalRequests, err := s.approvalRequestRepository.GetPendingApprovalRequest(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	response := make([]*dto.DocumentRequestResponse, 0)
+	for _, myApprovalRequest := range myApprovalRequests {
+		allApprovals, err := s.approvalRequestRepository.GetApprovalRequestsByDocumentID(ctx, int(myApprovalRequest.Document.ID))
+		if err != nil {
+			return nil, err
+		}
+
+		var canReview = false
+		for idx, approval := range allApprovals {
+			if approval.User.ID == uint(userID) {
+				if idx == 0 {
+					canReview = true
+				} else {
+					if allApprovals[idx-1].Status == "approved" {
+						canReview = true
+						break
+					}
+				}
+			}
+
+		}
+
+		if canReview {
+			response = append(response, &dto.DocumentRequestResponse{
+				ID:       myApprovalRequest.Document.ID,
+				Title:    myApprovalRequest.Document.Title,
+				Slug:     myApprovalRequest.Document.Slug,
+				FilePath: myApprovalRequest.Document.FilePath,
+				Status:   myApprovalRequest.Status,
+				User: dto.UserDocumentResponse{
+					ID:        myApprovalRequest.Document.User.ID,
+					Name:      myApprovalRequest.Document.User.Name,
+					Email:     myApprovalRequest.Document.User.Email,
+					ImagePath: myApprovalRequest.Document.User.ImagePath,
+				},
+				Category: dto.CategoryResponse{
+					ID:   myApprovalRequest.Document.Category.ID,
+					Name: myApprovalRequest.Document.Category.Name,
+				},
+			})
+		}
+	}
+
+	return response, nil
+}
+
+func (s *DocumentService) GetDocumentApprovalHistory(ctx context.Context, userID int) ([]*dto.DocumentRequestResponse, error) {
 	approvalRequests, err := s.approvalRequestRepository.GetApprovalRequest(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
 
-	var response []*dto.DocumentRequestResponse
+	response := make([]*dto.DocumentRequestResponse, 0)
 	for _, approvalRequest := range approvalRequests {
 		response = append(response, &dto.DocumentRequestResponse{
 			ID:       approvalRequest.Document.ID,

@@ -59,3 +59,13 @@ func (r *ApprovalRequestRepository) GetApprovalRequest(ctx context.Context, user
 	}
 	return approvalRequests, nil
 }
+
+func (r *ApprovalRequestRepository) GetPendingApprovalRequest(ctx context.Context, userID int) ([]*model.ApprovalRequest, error) {
+	var approvalRequests []*model.ApprovalRequest
+
+	err := r.db.WithContext(ctx).Where("user_id = ? AND status = ?", userID, "pending").Preload("Document").Preload("Document.User").Preload("Document.Category").Find(&approvalRequests).Error
+	if err != nil {
+		return nil, err
+	}
+	return approvalRequests, nil
+}

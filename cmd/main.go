@@ -49,6 +49,7 @@ func main() {
 	// Middleware
 	e.Use(middleware.Recover())
 	e.Use(middleware.Logger())
+	e.Use(middleware.CORS())
 
 	// Route
 	v1 := e.Group("/api/v1")
@@ -82,6 +83,7 @@ func main() {
 		v1WithAuth.POST("/documents/:slug/approval", documentHandler.ApprovalAction)
 
 		v1WithAuth.GET("/documents/to-review", documentHandler.GetDocumentApprovalRequest)
+		v1WithAuth.GET("/documents/to-review/history", documentHandler.GetDocumentApprovalHistory)
 	}
 
 	e.Logger.Fatal(e.Start(":8000"))

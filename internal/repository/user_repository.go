@@ -21,7 +21,7 @@ func NewUserRepository(db *gorm.DB) *UserRepository {
 func (r *UserRepository) GetAllUsers(ctx context.Context) ([]*model.User, error) {
 	var users []*model.User
 
-	err := r.db.WithContext(ctx).Find(&users).Error
+	err := r.db.WithContext(ctx).Preload("Role").Preload("Position").Find(&users).Error
 	if err != nil {
 		return nil, err
 	}

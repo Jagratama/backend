@@ -82,3 +82,10 @@ func (r *DocumentRepository) DeleteDocument(ctx context.Context, slug string, us
 	err := r.db.WithContext(ctx).Where("slug = ?", slug).Where("user_id", userID).Delete(&document).Error
 	return err
 }
+
+func (r *DocumentRepository) GetAllDocumentsNeedApprove(ctx context.Context, userID int) ([]*model.Document, error) {
+	var documents []*model.Document
+
+	err := r.db.WithContext(ctx).Preload("ApprovalRequest").Find(&documents).Error
+	return documents, err
+}
