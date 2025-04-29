@@ -26,25 +26,31 @@ func (h *UserHandler) Login(c echo.Context) error {
 	login := &dto.LoginRequest{}
 
 	if err := c.Bind(&login); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request payload"})
+		return helpers.SendResponseHTTP(c, http.StatusBadRequest, "Invalid payload", err.Error())
 	}
 
-	token, err := h.userService.Login(ctx, login.Email, login.Password)
+	users, err := h.userService.Login(ctx, login.Email, login.Password)
 	if err != nil {
+		if err.Error() == "record not found" {
+			return helpers.SendResponseHTTP(c, http.StatusNotFound, "User not found", nil)
+		}
+		if err.Error() == "invalid password" {
+			return helpers.SendResponseHTTP(c, http.StatusUnauthorized, " email/ password", nil)
+		}
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 
-	return c.JSON(http.StatusOK, map[string]string{"token": token})
+	return helpers.SendResponseHTTP(c, http.StatusOK, "Successfully to logged in", users)
 }
 
 func (h *UserHandler) GetAllUsers(c echo.Context) error {
 	ctx := c.Request().Context()
 	users, err := h.userService.GetAllUsers(ctx)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		return helpers.SendResponseHTTP(c, http.StatusInternalServerError, "Failed to get all users", err.Error())
 	}
 
-	return c.JSON(http.StatusOK, users)
+	return helpers.SendResponseHTTP(c, http.StatusOK, "Successfully to get all users", users)
 }
 
 func (h *UserHandler) CreateUser(c echo.Context) error {
@@ -67,51 +73,51 @@ func (h *UserHandler) GetUserByID(c echo.Context) error {
 	ctx := c.Request().Context()
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user ID"})
+		return helpers.SendResponseHTTP(c, http.StatusBadRequest, "Invalid user ID", nil)
 	}
 
 	user, err := h.userService.GetUserByID(ctx, id)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		return helpers.SendResponseHTTP(c, http.StatusInternalServerError, "Failed to get user", err.Error())
 	}
 
-	return c.JSON(http.StatusOK, user)
+	return helpers.SendResponseHTTP(c, http.StatusOK, "Successfully to get user", user)
 }
 
 func (h *UserHandler) UpdateUser(c echo.Context) error {
 	ctx := c.Request().Context()
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user ID"})
+		return helpers.SendResponseHTTP(c, http.StatusBadRequest, "Invalid user ID", nil)
 	}
 
 	user := &model.User{}
 	if err := c.Bind(user); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+		return helpers.SendResponseHTTP(c, http.StatusBadRequest, "Invalid request body", err.Error())
 	}
 
 	user.ID = uint(id)
 	updatedUser, err := h.userService.UpdateUser(ctx, user)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		return helpers.SendResponseHTTP(c, http.StatusInternalServerError, "Failed to update user", err.Error())
 	}
 
-	return c.JSON(http.StatusOK, updatedUser)
+	return helpers.SendResponseHTTP(c, http.StatusOK, "Successfully to update user", updatedUser)
 }
 
 func (h *UserHandler) DeleteUser(c echo.Context) error {
 	ctx := c.Request().Context()
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user ID"})
+		return helpers.SendResponseHTTP(c, http.StatusBadRequest, "Invalid user ID", nil)
 	}
 
 	err = h.userService.DeleteUser(ctx, id)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		return helpers.SendResponseHTTP(c, http.StatusInternalServerError, "Failed to delete user", err.Error())
 	}
 
-	return c.JSON(http.StatusOK, map[string]string{"message": "User deleted successfully"})
+	return helpers.SendResponseHTTP(c, http.StatusOK, "Successfully to delete user", nil)
 }
 
 func (h *UserHandler) GetMe(c echo.Context) error {
@@ -123,8 +129,8 @@ func (h *UserHandler) GetMe(c echo.Context) error {
 
 	userLogged, err := h.userService.GetMe(ctx, userID)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		return helpers.SendResponseHTTP(c, http.StatusInternalServerError, "Failed to get user", err.Error())
 	}
 
-	return c.JSON(http.StatusOK, userLogged)
+	return helpers.SendResponseHTTP(c, http.StatusOK, "Successfully to get user", userLogged)
 }

@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"fmt"
 	"jagratama-backend/internal/dto"
 	"jagratama-backend/internal/model"
 	"jagratama-backend/internal/repository"
@@ -23,15 +22,17 @@ func NewUserService(userRepository repository.UserRepository) *UserService {
 }
 
 // Login logs in a user with the given email and password
-func (s *UserService) Login(ctx context.Context, email string, password string) (string, error) {
+func (s *UserService) Login(ctx context.Context, email string, password string) (dto.AuthResponse, error) {
+	response := dto.AuthResponse{}
+
 	user, err := s.userRepository.GetUserByEmail(ctx, email)
 	if err != nil {
-		return "", err
+		return response, err
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if err != nil {
-		return "", err
+		return response, err
 	}
 
 	claims := &model.JwtCustomClaims{
@@ -47,10 +48,18 @@ func (s *UserService) Login(ctx context.Context, email string, password string) 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	t, err := token.SignedString([]byte("secret"))
 	if err != nil {
-		return "", err
+		return response, err
 	}
 
-	return t, nil
+	result := dto.AuthResponse{
+		Token: t,
+		ID:    int(user.ID),
+		Email: user.Email,
+		Name:  user.Name,
+		Role:  user.Role.Name,
+	}
+
+	return result, nil
 }
 
 // GetAllUsers retrieves all users from the database
@@ -68,7 +77,6 @@ func (s *UserService) GetAllUsers(ctx context.Context) ([]*model.User, error) {
 
 // CreateUser creates a new user
 func (s *UserService) CreateUser(ctx context.Context, user *model.User) (*model.User, error) {
-	fmt.Println(user.Password)
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return nil, err
