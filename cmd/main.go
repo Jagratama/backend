@@ -28,15 +28,16 @@ func main() {
 	}
 
 	// Auto migrate the User table
-	err = db.AutoMigrate(&model.User{}, &model.Document{}, &model.ApprovalRequest{})
+	err = db.AutoMigrate(&model.User{}, &model.Document{}, &model.ApprovalRequest{}, &model.RefreshToken{})
 	if err != nil {
 		fmt.Printf("Failed to migrate database %v", err)
 	}
 
 	fmt.Println("Successfully connected to database")
 
+	refreshTokenRepository := repository.NewRefreshTokenRepository(db)
 	userRepository := repository.NewUserRepository(db)
-	userService := service.NewUserService(*userRepository)
+	userService := service.NewUserService(*userRepository, *refreshTokenRepository)
 	userHandler := handler.NewUserHandler(*userService)
 
 	approvalRequestRepository := repository.NewApprovalRequestRepository(db)
@@ -66,6 +67,8 @@ func main() {
 		v1WithAuth.Use(customMiddleware.Auth)
 
 		v1WithAuth.GET("/auth/me", userHandler.GetMe)
+		v1WithAuth.POST("/auth/refresh-token", userHandler.RefreshToken)
+		v1WithAuth.POST("/auth/logout", userHandler.Logout)
 
 		v1WithAuth.GET("/users", userHandler.GetAllUsers)
 		v1WithAuth.POST("/users", userHandler.CreateUser)

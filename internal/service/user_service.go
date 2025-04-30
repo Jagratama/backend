@@ -3,8 +3,10 @@ package service
 import (
 	"context"
 	"jagratama-backend/internal/dto"
+	"jagratama-backend/internal/helpers"
 	"jagratama-backend/internal/model"
 	"jagratama-backend/internal/repository"
+	"strconv"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
@@ -12,18 +14,20 @@ import (
 )
 
 type UserService struct {
-	userRepository repository.UserRepository
+	userRepository         repository.UserRepository
+	refreshTokenRepository repository.RefreshTokenRepository
 }
 
-func NewUserService(userRepository repository.UserRepository) *UserService {
+func NewUserService(userRepository repository.UserRepository, refreshTokenRepository repository.RefreshTokenRepository) *UserService {
 	return &UserService{
-		userRepository: userRepository,
+		userRepository:         userRepository,
+		refreshTokenRepository: refreshTokenRepository,
 	}
 }
 
 // Login logs in a user with the given email and password
-func (s *UserService) Login(ctx context.Context, email string, password string) (dto.AuthResponse, error) {
-	response := dto.AuthResponse{}
+func (s *UserService) Login(ctx context.Context, email string, password string) (*dto.AuthResponse, error) {
+	response := &dto.AuthResponse{}
 
 	user, err := s.userRepository.GetUserByEmail(ctx, email)
 	if err != nil {
@@ -35,31 +39,73 @@ func (s *UserService) Login(ctx context.Context, email string, password string) 
 		return response, err
 	}
 
+	accessTokenTime := helpers.GetEnv("JWT_ACCESS_TOKEN_EXPIRES", "3600")
+	accessTokenTimeInt, err := strconv.Atoi(accessTokenTime)
+	if err != nil {
+		return response, err
+	}
+
+	jwtExpireTime := jwt.NewNumericDate(time.Now().Add(time.Duration(accessTokenTimeInt) * time.Second))
+
 	claims := &model.JwtCustomClaims{
 		int(user.ID),
 		user.Name,
 		user.Email,
 		user.Role.Name,
 		jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 24)),
+			ExpiresAt: jwtExpireTime,
 		},
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	t, err := token.SignedString([]byte("secret"))
+	t, err := token.SignedString([]byte(helpers.GetEnv("JWT_ACCESS_TOKEN_SECRET", "secret")))
+	if err != nil {
+		return response, err
+	}
+
+	RefreshTokenTime := helpers.GetEnv("JWT_REFRESH_TOKEN_EXPIRES", "604800")
+	RefreshTokenTimeInt, err := strconv.Atoi(RefreshTokenTime)
+	if err != nil {
+		return response, err
+	}
+	RefreshTokenExpireTime := jwt.NewNumericDate(time.Now().Add(time.Duration(RefreshTokenTimeInt) * time.Second))
+	claimsRefresh := &model.JwtCustomClaims{
+		int(user.ID),
+		user.Name,
+		user.Email,
+		user.Role.Name,
+		jwt.RegisteredClaims{
+			ExpiresAt: RefreshTokenExpireTime,
+		},
+	}
+	refreshToken := jwt.NewWithClaims(jwt.SigningMethodHS256, claimsRefresh)
+	RefreshToken, err := refreshToken.SignedString([]byte(helpers.GetEnv("JWT_REFRESH_TOKEN_SECRET", "secret")))
+	if err != nil {
+		return response, err
+	}
+
+	refreshTokenData := &model.RefreshToken{
+		UserID:    int(user.ID),
+		Token:     RefreshToken,
+		UserAgent: "",
+		ExpiredAt: RefreshTokenExpireTime.String(),
+	}
+
+	err = s.refreshTokenRepository.Create(ctx, refreshTokenData)
 	if err != nil {
 		return response, err
 	}
 
 	result := dto.AuthResponse{
-		Token: t,
-		ID:    int(user.ID),
-		Email: user.Email,
-		Name:  user.Name,
-		Role:  user.Role.Name,
+		ID:           int(user.ID),
+		Email:        user.Email,
+		Name:         user.Name,
+		Role:         user.Role.Name,
+		Token:        t,
+		RefreshToken: RefreshToken,
 	}
 
-	return result, nil
+	return &result, nil
 }
 
 // GetAllUsers retrieves all users from the database
@@ -221,4 +267,69 @@ func (s *UserService) UpdateUserProfile(ctx context.Context, user *dto.UpdatePro
 	}
 
 	return response, nil
+}
+
+func (s *UserService) RefreshToken(ctx context.Context, userID int, refreshToken string) (*dto.AuthResponse, error) {
+	response := &dto.AuthResponse{}
+
+	// Check if the user exists
+	user, err := s.userRepository.GetUserByID(ctx, userID)
+	if err != nil {
+		return response, err
+	}
+	// Check if the refresh token is valid
+	refreshTokenData, err := s.refreshTokenRepository.GetByUserID(ctx, userID)
+	if err != nil {
+		return response, err
+	}
+	if refreshTokenData.Token != refreshToken {
+		return response, err
+	}
+	// Parse the refresh token
+	parsedToken, err := jwt.Parse(refreshToken, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, err
+		}
+		return []byte(helpers.GetEnv("JWT_REFRESH_TOKEN_SECRET", "secret")), nil
+	})
+	if err != nil {
+		return response, err
+	}
+	// Check if the token is valid
+	if _, ok := parsedToken.Claims.(*model.JwtCustomClaims); ok && parsedToken.Valid {
+		// Create a new access token
+		accessTokenTime := helpers.GetEnv("JWT_ACCESS_TOKEN_EXPIRES", "3600")
+		accessTokenTimeInt, err := strconv.Atoi(accessTokenTime)
+		if err != nil {
+			return response, err
+		}
+		jwtExpireTime := jwt.NewNumericDate(time.Now().Add(time.Duration(accessTokenTimeInt) * time.Second))
+
+		newClaims := &model.JwtCustomClaims{
+			int(user.ID),
+			user.Name,
+			user.Email,
+			user.Role.Name,
+			jwt.RegisteredClaims{
+				ExpiresAt: jwtExpireTime,
+			},
+		}
+
+		token := jwt.NewWithClaims(jwt.SigningMethodHS256, newClaims)
+		t, err := token.SignedString([]byte(helpers.GetEnv("JWT_ACCESS_TOKEN_SECRET", "secret")))
+		if err != nil {
+			return response, err
+		}
+
+		response.ID = int(user.ID)
+		response.Email = user.Email
+		response.Name = user.Name
+		response.Role = user.Role.Name
+		response.Token = t
+		response.RefreshToken = refreshTokenData.Token
+
+		return response, nil
+	}
+	// If the token is not valid, return an error
+	return response, err
 }
