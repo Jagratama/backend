@@ -5,6 +5,7 @@ type AuthResponse struct {
 	Email        string `json:"email"`
 	Name         string `json:"name"`
 	Role         string `json:"role"`
+	Position     string `json:"position"`
 	Token        string `json:"token"`
 	RefreshToken string `json:"refresh_token"`
 }

@@ -101,6 +101,7 @@ func (s *UserService) Login(ctx context.Context, email string, password string) 
 		Email:        user.Email,
 		Name:         user.Name,
 		Role:         user.Role.Name,
+		Position:     user.Position.Name,
 		Token:        t,
 		RefreshToken: RefreshToken,
 	}

@@ -31,7 +31,7 @@ func (r *UserRepository) GetAllUsers(ctx context.Context) ([]*model.User, error)
 func (r *UserRepository) GetUserByID(ctx context.Context, id int) (*model.User, error) {
 	var user model.User
 
-	err := r.db.Where("id = ?", id).Preload("Position").Preload("Role").First(&user).Error
+	err := r.db.Where("id = ?", id).Preload("Role").Preload("Position").First(&user).Error
 	if err != nil {
 		return nil, err
 	}
@@ -42,7 +42,7 @@ func (r *UserRepository) GetUserByID(ctx context.Context, id int) (*model.User, 
 func (r *UserRepository) GetUserByEmail(ctx context.Context, email string) (*model.User, error) {
 	var user model.User
 
-	err := r.db.WithContext(ctx).Where("email = ?", email).Preload("Role").First(&user).Error
+	err := r.db.WithContext(ctx).Where("email = ?", email).Preload("Role").Preload("Position").First(&user).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, gorm.ErrRecordNotFound

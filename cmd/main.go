@@ -59,7 +59,7 @@ func main() {
 
 		v1WithAuth := v1.Group("")
 		v1WithAuth.Use(echojwt.WithConfig(echojwt.Config{
-			SigningKey: []byte("secret"),
+			SigningKey: []byte(helpers.GetEnv("JWT_ACCESS_TOKEN_SECRET", "secret")),
 			NewClaimsFunc: func(c echo.Context) jwt.Claims {
 				return new(model.JwtCustomClaims)
 			},
