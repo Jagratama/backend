@@ -49,6 +49,10 @@ func main() {
 	roleService := service.NewRoleService(*roleRepository)
 	roleHandler := handler.NewRoleHandler(*roleService)
 
+	positionRepository := repository.NewPositionRepository(db)
+	positionService := service.NewPositionService(*positionRepository)
+	positionHandler := handler.NewPositionHandler(*positionService)
+
 	e := echo.New()
 
 	// Middleware
@@ -84,6 +88,9 @@ func main() {
 
 		v1WithAuth.GET("/roles", roleHandler.GetAllRoles)
 		v1WithAuth.GET("/roles/:id", roleHandler.GetRoleByID)
+
+		v1WithAuth.GET("/positions", positionHandler.GetAllPositions)
+		v1WithAuth.GET("/positions/:id", positionHandler.GetPositionByID)
 
 		v1WithAuth.GET("/documents", documentHandler.GetAllDocuments)
 		v1WithAuth.GET("/documents/:slug", documentHandler.GetDocumentBySlug)
