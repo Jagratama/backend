@@ -37,7 +37,7 @@ func (h *UserHandler) Login(c echo.Context) error {
 		if err.Error() == "invalid password" {
 			return helpers.SendResponseHTTP(c, http.StatusUnauthorized, " email/ password", nil)
 		}
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		return helpers.SendResponseHTTP(c, http.StatusInternalServerError, "Failed to login", err.Error())
 	}
 
 	return helpers.SendResponseHTTP(c, http.StatusOK, "Successfully to logged in", users)
@@ -164,4 +164,44 @@ func (h *UserHandler) UpdateUserProfile(c echo.Context) error {
 	}
 
 	return helpers.SendResponseHTTP(c, http.StatusOK, "Successfully to update user", updatedUser)
+}
+
+func (h *UserHandler) RefreshToken(c echo.Context) error {
+	ctx := c.Request().Context()
+	cookie, err := c.Cookie("refresh_token")
+
+	if err != nil {
+		if err == http.ErrNoCookie {
+			return helpers.SendResponseHTTP(c, http.StatusUnauthorized, "Refresh token not found", nil)
+		}
+		return helpers.SendResponseHTTP(c, http.StatusInternalServerError, "Failed to get refresh token", err.Error())
+	}
+
+	refreshTokenData := cookie.Value
+	userID, ok := c.Get("userID").(int)
+	if !ok {
+		return helpers.SendResponseHTTP(c, http.StatusForbidden, "Unauthorized", nil)
+	}
+
+	refreshToken, err := h.userService.RefreshToken(ctx, userID, refreshTokenData)
+	if err != nil {
+		return helpers.SendResponseHTTP(c, http.StatusInternalServerError, "Failed to refresh token", err.Error())
+	}
+
+	return helpers.SendResponseHTTP(c, http.StatusOK, "Successfully to refresh token", refreshToken)
+}
+
+func (h *UserHandler) Logout(c echo.Context) error {
+	ctx := c.Request().Context()
+	userID, ok := c.Get("userID").(int)
+	if !ok {
+		return helpers.SendResponseHTTP(c, http.StatusForbidden, "Unauthorized", nil)
+	}
+
+	err := h.userService.Logout(ctx, userID)
+	if err != nil {
+		return helpers.SendResponseHTTP(c, http.StatusInternalServerError, "Failed to logout", err.Error())
+	}
+
+	return helpers.SendResponseHTTP(c, http.StatusOK, "Successfully to logout", nil)
 }

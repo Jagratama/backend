@@ -333,3 +333,19 @@ func (s *UserService) RefreshToken(ctx context.Context, userID int, refreshToken
 	// If the token is not valid, return an error
 	return response, err
 }
+
+func (s *UserService) Logout(ctx context.Context, userID int) error {
+	// Check if the user exists
+	_, err := s.userRepository.GetUserByID(ctx, userID)
+	if err != nil {
+		return err
+	}
+
+	// Delete the refresh token from the database
+	err = s.refreshTokenRepository.DeleteByUserID(ctx, userID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
