@@ -45,6 +45,10 @@ func main() {
 	documentService := service.NewDocumentService(*documentRepository, *approvalRequestRepository, *userRepository)
 	documentHandler := handler.NewDocumentHandler(*documentService)
 
+	roleRepository := repository.NewRoleRepository(db)
+	roleService := service.NewRoleService(*roleRepository)
+	roleHandler := handler.NewRoleHandler(*roleService)
+
 	e := echo.New()
 
 	// Middleware
@@ -77,6 +81,9 @@ func main() {
 		v1WithAuth.GET("/users/:id", userHandler.GetUserByID)
 		v1WithAuth.PUT("/users/:id", userHandler.UpdateUser)
 		v1WithAuth.DELETE("/users/:id", userHandler.DeleteUser)
+
+		v1WithAuth.GET("/roles", roleHandler.GetAllRoles)
+		v1WithAuth.GET("/roles/:id", roleHandler.GetRoleByID)
 
 		v1WithAuth.GET("/documents", documentHandler.GetAllDocuments)
 		v1WithAuth.GET("/documents/:slug", documentHandler.GetDocumentBySlug)
