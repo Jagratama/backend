@@ -193,3 +193,32 @@ func (s *UserService) GetApproverReviewerUsers(ctx context.Context) ([]*dto.User
 
 	return response, nil
 }
+
+func (s *UserService) UpdateUserProfile(ctx context.Context, user *dto.UpdateProfileRequest, userID int) (*dto.UserResponse, error) {
+	// Check if the user exists
+	existingUser, err := s.userRepository.GetUserByID(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Update the user fields
+	existingUser.Name = user.Name
+	existingUser.ImagePath = user.ImagePath
+
+	// Save the updated user to the database
+	updatedUser, err := s.userRepository.UpdateUser(ctx, existingUser)
+	if err != nil {
+		return nil, err
+	}
+
+	response := &dto.UserResponse{
+		ID:         updatedUser.ID,
+		Name:       updatedUser.Name,
+		Email:      updatedUser.Email,
+		ImagePath:  updatedUser.ImagePath,
+		RoleID:     updatedUser.RoleID,
+		PositionID: updatedUser.PositionID,
+	}
+
+	return response, nil
+}

@@ -69,11 +69,11 @@ func main() {
 
 		v1WithAuth.GET("/users", userHandler.GetAllUsers)
 		v1WithAuth.POST("/users", userHandler.CreateUser)
+		v1WithAuth.PUT("/users/profile", userHandler.UpdateUserProfile)
+		v1WithAuth.GET("/users/approver-reviewer", userHandler.GetApproverReviewerUsers)
 		v1WithAuth.GET("/users/:id", userHandler.GetUserByID)
 		v1WithAuth.PUT("/users/:id", userHandler.UpdateUser)
 		v1WithAuth.DELETE("/users/:id", userHandler.DeleteUser)
-
-		v1WithAuth.GET("/users/approver-reviewer", userHandler.GetApproverReviewerUsers)
 
 		v1WithAuth.GET("/documents", documentHandler.GetAllDocuments)
 		v1WithAuth.GET("/documents/:slug", documentHandler.GetDocumentBySlug)

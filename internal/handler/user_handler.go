@@ -144,3 +144,24 @@ func (h *UserHandler) GetApproverReviewerUsers(c echo.Context) error {
 
 	return helpers.SendResponseHTTP(c, http.StatusOK, "Successfully to get approver/reviewer users", users)
 }
+
+func (h *UserHandler) UpdateUserProfile(c echo.Context) error {
+	ctx := c.Request().Context()
+
+	profile := &dto.UpdateProfileRequest{}
+	if err := c.Bind(profile); err != nil {
+		return helpers.SendResponseHTTP(c, http.StatusBadRequest, "Invalid request body", err.Error())
+	}
+
+	userID, ok := c.Get("userID").(int)
+	if !ok {
+		return helpers.SendResponseHTTP(c, http.StatusForbidden, "Unauthorized", nil)
+	}
+
+	updatedUser, err := h.userService.UpdateUserProfile(ctx, profile, userID)
+	if err != nil {
+		return helpers.SendResponseHTTP(c, http.StatusInternalServerError, "Failed to update user", err.Error())
+	}
+
+	return helpers.SendResponseHTTP(c, http.StatusOK, "Successfully to update user", updatedUser)
+}
