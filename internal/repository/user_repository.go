@@ -81,3 +81,18 @@ func (r *UserRepository) DeleteUser(ctx context.Context, id int) (*model.User, e
 
 	return &user, nil
 }
+
+func (r *UserRepository) GetApproverReviewerUsers(ctx context.Context) ([]*model.User, error) {
+	var users []*model.User
+	err := r.db.WithContext(ctx).
+		Joins("JOIN roles ON roles.id = users.role_id").
+		Where("roles.name IN (?)", []string{"approver", "reviewer"}).
+		Preload("Role").
+		Preload("Position").
+		Find(&users).Error
+
+	if err != nil {
+		return nil, err
+	}
+	return users, nil
+}

@@ -134,3 +134,13 @@ func (h *UserHandler) GetMe(c echo.Context) error {
 
 	return helpers.SendResponseHTTP(c, http.StatusOK, "Successfully to get user", userLogged)
 }
+
+func (h *UserHandler) GetApproverReviewerUsers(c echo.Context) error {
+	ctx := c.Request().Context()
+	users, err := h.userService.GetApproverReviewerUsers(ctx)
+	if err != nil {
+		return helpers.SendResponseHTTP(c, http.StatusInternalServerError, "Failed to get approver/reviewer users", err.Error())
+	}
+
+	return helpers.SendResponseHTTP(c, http.StatusOK, "Successfully to get approver/reviewer users", users)
+}

@@ -73,6 +73,8 @@ func main() {
 		v1WithAuth.PUT("/users/:id", userHandler.UpdateUser)
 		v1WithAuth.DELETE("/users/:id", userHandler.DeleteUser)
 
+		v1WithAuth.GET("/users/approver-reviewer", userHandler.GetApproverReviewerUsers)
+
 		v1WithAuth.GET("/documents", documentHandler.GetAllDocuments)
 		v1WithAuth.GET("/documents/:slug", documentHandler.GetDocumentBySlug)
 		v1WithAuth.POST("/documents", documentHandler.CreateDocument, customMiddleware.RoleCheck([]string{"requester", "admin"}))

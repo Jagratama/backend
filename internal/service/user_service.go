@@ -162,3 +162,34 @@ func (s *UserService) GetMe(ctx context.Context, id int) (*dto.UserResponse, err
 	}
 	return response, nil
 }
+
+func (s *UserService) GetApproverReviewerUsers(ctx context.Context) ([]*dto.UserResponse, error) {
+	users, err := s.userRepository.GetApproverReviewerUsers(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	response := []*dto.UserResponse{}
+
+	for _, user := range users {
+		response = append(response, &dto.UserResponse{
+			ID:         user.ID,
+			Name:       user.Name,
+			Email:      user.Email,
+			ImagePath:  user.ImagePath,
+			RoleID:     user.RoleID,
+			PositionID: user.PositionID,
+			Role: dto.Role{
+				ID:   user.Role.ID,
+				Name: user.Role.Name,
+			},
+			Position: dto.Position{
+				ID:                 user.Position.ID,
+				Name:               user.Position.Name,
+				RequiresSignatures: user.Position.RequiresSignatures,
+			},
+		})
+	}
+
+	return response, nil
+}
