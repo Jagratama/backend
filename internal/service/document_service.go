@@ -33,10 +33,10 @@ func (s *DocumentService) GetAllDocuments(ctx context.Context, userID int) ([]*d
 	var response []*dto.DocumentResponse
 	for _, document := range documents {
 		response = append(response, &dto.DocumentResponse{
-			ID:       document.ID,
-			Title:    document.Title,
-			Slug:     document.Slug,
-			FilePath: document.FilePath,
+			ID:    document.ID,
+			Title: document.Title,
+			Slug:  document.Slug,
+			File:  helpers.GetEnv("AWS_S3_URL", "") + document.File.FilePath,
 			User: dto.UserDocumentResponse{
 				ID:    document.User.ID,
 				Name:  document.User.Name,
@@ -63,7 +63,7 @@ func (s *DocumentService) GetDocumentBySlug(ctx context.Context, slug string, us
 		Title:       document.Title,
 		Description: document.Description,
 		Slug:        document.Slug,
-		FilePath:    document.FilePath,
+		File:        helpers.GetEnv("AWS_S3_URL", "") + document.File.FilePath,
 		User: dto.UserDocumentResponse{
 			ID:    document.User.ID,
 			Name:  document.User.Name,
@@ -113,7 +113,7 @@ func (s *DocumentService) CreateDocument(ctx context.Context, documentRequest *d
 		Title:       documentRequest.Title,
 		Slug:        documentRequest.Slug,
 		Description: documentRequest.Description,
-		FilePath:    documentRequest.FilePath,
+		FileID:      documentRequest.FileID,
 	}
 	newDocument, err := s.documentRepository.CreateDocument(ctx, document)
 	if err != nil {
@@ -133,10 +133,10 @@ func (s *DocumentService) CreateDocument(ctx context.Context, documentRequest *d
 	}
 
 	response := &dto.DocumentResponse{
-		ID:       document.ID,
-		Title:    document.Title,
-		Slug:     document.Slug,
-		FilePath: document.FilePath,
+		ID:    document.ID,
+		Title: document.Title,
+		Slug:  document.Slug,
+		File:  helpers.GetEnv("AWS_S3_URL", "") + document.File.FilePath,
 		User: dto.UserDocumentResponse{
 			ID:    document.User.ID,
 			Name:  document.User.Name,
@@ -284,11 +284,11 @@ func (s *DocumentService) GetDocumentApprovalRequest(ctx context.Context, userID
 
 		if canReview {
 			response = append(response, &dto.DocumentRequestResponse{
-				ID:       myApprovalRequest.Document.ID,
-				Title:    myApprovalRequest.Document.Title,
-				Slug:     myApprovalRequest.Document.Slug,
-				FilePath: myApprovalRequest.Document.FilePath,
-				Status:   myApprovalRequest.Status,
+				ID:     myApprovalRequest.Document.ID,
+				Title:  myApprovalRequest.Document.Title,
+				Slug:   myApprovalRequest.Document.Slug,
+				File:   helpers.GetEnv("AWS_S3_URL", "") + myApprovalRequest.Document.File.FilePath,
+				Status: myApprovalRequest.Status,
 				User: dto.UserDocumentResponse{
 					ID:    myApprovalRequest.Document.User.ID,
 					Name:  myApprovalRequest.Document.User.Name,
@@ -315,11 +315,11 @@ func (s *DocumentService) GetDocumentApprovalHistory(ctx context.Context, userID
 	response := make([]*dto.DocumentRequestResponse, 0)
 	for _, approvalRequest := range approvalRequests {
 		response = append(response, &dto.DocumentRequestResponse{
-			ID:       approvalRequest.Document.ID,
-			Title:    approvalRequest.Document.Title,
-			Slug:     approvalRequest.Document.Slug,
-			FilePath: approvalRequest.Document.FilePath,
-			Status:   approvalRequest.Status,
+			ID:     approvalRequest.Document.ID,
+			Title:  approvalRequest.Document.Title,
+			Slug:   approvalRequest.Document.Slug,
+			File:   helpers.GetEnv("AWS_S3_URL", "") + approvalRequest.Document.File.FilePath,
+			Status: approvalRequest.Status,
 			User: dto.UserDocumentResponse{
 				ID:    approvalRequest.Document.User.ID,
 				Name:  approvalRequest.Document.User.Name,

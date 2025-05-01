@@ -54,7 +54,7 @@ func (r *ApprovalRequestRepository) UpdateApprovalRequest(ctx context.Context, d
 func (r *ApprovalRequestRepository) GetApprovalRequest(ctx context.Context, userID int) ([]*model.ApprovalRequest, error) {
 	var approvalRequests []*model.ApprovalRequest
 
-	err := r.db.WithContext(ctx).Where("user_id = ?", userID).Preload("Document").Preload("Document.Category").Preload("Document.User").Preload("Document.User.File").Find(&approvalRequests).Error
+	err := r.db.WithContext(ctx).Where("user_id = ?", userID).Preload("Document").Preload("Document.Category").Preload("Document.File").Preload("Document.User").Preload("Document.User.File").Find(&approvalRequests).Error
 	if err != nil {
 		return nil, err
 	}
@@ -64,7 +64,7 @@ func (r *ApprovalRequestRepository) GetApprovalRequest(ctx context.Context, user
 func (r *ApprovalRequestRepository) GetPendingApprovalRequest(ctx context.Context, userID int) ([]*model.ApprovalRequest, error) {
 	var approvalRequests []*model.ApprovalRequest
 
-	err := r.db.WithContext(ctx).Where("user_id = ? AND status = ?", userID, "pending").Preload("Document").Preload("Document.Category").Preload("Document.User").Preload("Document.User.File").Find(&approvalRequests).Error
+	err := r.db.WithContext(ctx).Where("user_id = ? AND status = ?", userID, "pending").Preload("Document").Preload("Document.Category").Preload("Document.File").Preload("Document.User").Preload("Document.User.File").Find(&approvalRequests).Error
 	if err != nil {
 		return nil, err
 	}

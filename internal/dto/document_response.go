@@ -9,7 +9,7 @@ type DocumentResponse struct {
 	Title       string    `json:"title"`
 	Slug        string    `json:"slug"`
 	Description string    `json:"description"`
-	FilePath    string    `json:"file_path"`
+	File        string    `json:"file"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
 
@@ -24,7 +24,7 @@ type DocumentRequestResponse struct {
 	Title       string    `json:"title"`
 	Slug        string    `json:"slug"`
 	Description string    `json:"description"`
-	FilePath    string    `json:"file_path"`
+	File        string    `json:"file"`
 	Status      string    `json:"status"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
