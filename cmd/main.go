@@ -68,6 +68,10 @@ func main() {
 	positionService := service.NewPositionService(*positionRepository)
 	positionHandler := handler.NewPositionHandler(*positionService)
 
+	categoryRepository := repository.NewCategoryRepository(db)
+	categoryService := service.NewCategoryService(*categoryRepository)
+	categoryHandler := handler.NewCategoryHandler(*categoryService)
+
 	e := echo.New()
 
 	// Middleware
@@ -120,6 +124,8 @@ func main() {
 
 		v1WithAuth.GET("/documents/to-review", documentHandler.GetDocumentApprovalRequest)
 		v1WithAuth.GET("/documents/to-review/history", documentHandler.GetDocumentApprovalHistory)
+
+		v1WithAuth.GET("/categories", categoryHandler.GetAllCategories)
 	}
 
 	e.Logger.Fatal(e.Start(":8000"))
