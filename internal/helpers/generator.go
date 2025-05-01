@@ -24,9 +24,9 @@ func GenerateRandomLetters(length int) (string, error) {
 	return string(b), nil
 }
 
-// GenerateSlug converts a title string into a URL-friendly slug
+// GenerateSlug converts a title string into a URL-friendly slug with random 5 letters
 // Example: "Hello World!" -> "hello-world"
-func GenerateSlug(title string) (string, error) {
+func GenerateSlug(title string, randomNumberLetter int) (string, error) {
 	// Convert to lowercase
 	slug := strings.ToLower(title)
 
@@ -45,7 +45,7 @@ func GenerateSlug(title string) (string, error) {
 	// Trim hyphens from start and end
 	slug = strings.Trim(slug, "-")
 
-	randomLetters, err := GenerateRandomLetters(5)
+	randomLetters, err := GenerateRandomLetters(randomNumberLetter)
 	if err != nil {
 		return "", err
 	}

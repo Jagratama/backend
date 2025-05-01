@@ -100,7 +100,7 @@ func (s *DocumentService) CreateDocument(ctx context.Context, documentRequest *d
 		approverIDs = append(approverIDs, int(user.ID))
 	}
 
-	slug, err := helpers.GenerateSlug(documentRequest.Title)
+	slug, err := helpers.GenerateSlug(documentRequest.Title, 8)
 	if err != nil {
 		return nil, err
 	}

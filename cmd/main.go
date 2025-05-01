@@ -5,6 +5,7 @@ import (
 	"jagratama-backend/internal/handler"
 	"jagratama-backend/internal/helpers"
 	"jagratama-backend/internal/model"
+	"jagratama-backend/internal/pkg/aws"
 	"jagratama-backend/internal/repository"
 	"jagratama-backend/internal/service"
 
@@ -32,12 +33,22 @@ func main() {
 	}
 
 	// Auto migrate the User table
-	err = db.AutoMigrate(&model.User{}, &model.Document{}, &model.ApprovalRequest{}, &model.RefreshToken{})
+	err = db.AutoMigrate(&model.User{}, &model.Document{}, &model.ApprovalRequest{}, &model.RefreshToken{}, &model.File{})
 	if err != nil {
 		fmt.Printf("Failed to migrate database %v", err)
 	}
 
 	fmt.Println("Successfully connected to database")
+
+	s3Uploader, err := aws.NewS3Uploader(helpers.GetEnv("AWS_BUCKET_NAME", ""))
+	if err != nil {
+		fmt.Printf("Failed to create S3 uploader: %v", err)
+		return
+	}
+
+	fileRepository := repository.NewFileRepository(db)
+	fileService := service.NewFileService(*fileRepository, s3Uploader)
+	fileHandler := handler.NewFileHandler(*fileService)
 
 	refreshTokenRepository := repository.NewRefreshTokenRepository(db)
 	userRepository := repository.NewUserRepository(db)
@@ -81,6 +92,8 @@ func main() {
 		v1WithAuth.GET("/auth/me", userHandler.GetMe)
 		v1WithAuth.POST("/auth/refresh-token", userHandler.RefreshToken)
 		v1WithAuth.POST("/auth/logout", userHandler.Logout)
+
+		v1WithAuth.POST("/upload", fileHandler.UploadFile)
 
 		v1WithAuth.GET("/users", userHandler.GetAllUsers)
 		v1WithAuth.POST("/users", userHandler.CreateUser)
