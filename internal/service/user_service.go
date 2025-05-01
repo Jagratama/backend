@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"jagratama-backend/internal/dto"
 	"jagratama-backend/internal/helpers"
 	"jagratama-backend/internal/model"
@@ -57,6 +58,8 @@ func (s *UserService) Login(ctx context.Context, email string, password string) 
 		},
 	}
 
+	fmt.Println(jwtExpireTime)
+
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	t, err := token.SignedString([]byte(helpers.GetEnv("JWT_ACCESS_TOKEN_SECRET", "secret")))
 	if err != nil {
@@ -100,6 +103,7 @@ func (s *UserService) Login(ctx context.Context, email string, password string) 
 		ID:           int(user.ID),
 		Email:        user.Email,
 		Name:         user.Name,
+		Image:        helpers.GetEnv("AWS_S3_URL", "") + user.File.FilePath,
 		Role:         user.Role.Name,
 		Position:     user.Position.Name,
 		Token:        t,
@@ -338,69 +342,72 @@ func (s *UserService) UpdateUserProfile(ctx context.Context, user *dto.UpdatePro
 	return response, nil
 }
 
-func (s *UserService) RefreshToken(ctx context.Context, userID int, refreshToken string) (*dto.AuthResponse, error) {
+func (s *UserService) RefreshToken(ctx context.Context, refreshToken string) (*dto.AuthResponse, error) {
 	response := &dto.AuthResponse{}
 
-	// Check if the user exists
-	user, err := s.userRepository.GetUserByID(ctx, userID)
-	if err != nil {
-		return response, err
-	}
 	// Check if the refresh token is valid
-	refreshTokenData, err := s.refreshTokenRepository.GetByUserID(ctx, userID)
+	refreshTokenData, err := s.refreshTokenRepository.GetByToken(ctx, refreshToken)
 	if err != nil {
 		return response, err
 	}
-	if refreshTokenData.Token != refreshToken {
+
+	// Check if the user exists
+	user, err := s.userRepository.GetUserByID(ctx, refreshTokenData.UserID)
+	if err != nil {
 		return response, err
 	}
+
 	// Parse the refresh token
-	parsedToken, err := jwt.Parse(refreshToken, func(token *jwt.Token) (interface{}, error) {
+	parsedToken, err := jwt.ParseWithClaims(refreshToken, &model.JwtCustomClaims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, err
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
 		return []byte(helpers.GetEnv("JWT_REFRESH_TOKEN_SECRET", "secret")), nil
 	})
 	if err != nil {
 		return response, err
 	}
+
 	// Check if the token is valid
-	if _, ok := parsedToken.Claims.(*model.JwtCustomClaims); ok && parsedToken.Valid {
-		// Create a new access token
-		accessTokenTime := helpers.GetEnv("JWT_ACCESS_TOKEN_EXPIRES", "3600")
-		accessTokenTimeInt, err := strconv.Atoi(accessTokenTime)
-		if err != nil {
-			return response, err
-		}
-		jwtExpireTime := jwt.NewNumericDate(time.Now().Add(time.Duration(accessTokenTimeInt) * time.Second))
-
-		newClaims := &model.JwtCustomClaims{
-			int(user.ID),
-			user.Name,
-			user.Email,
-			user.Role.Name,
-			jwt.RegisteredClaims{
-				ExpiresAt: jwtExpireTime,
-			},
-		}
-
-		token := jwt.NewWithClaims(jwt.SigningMethodHS256, newClaims)
-		t, err := token.SignedString([]byte(helpers.GetEnv("JWT_ACCESS_TOKEN_SECRET", "secret")))
-		if err != nil {
-			return response, err
-		}
-
-		response.ID = int(user.ID)
-		response.Email = user.Email
-		response.Name = user.Name
-		response.Role = user.Role.Name
-		response.Token = t
-		response.RefreshToken = refreshTokenData.Token
-
-		return response, nil
+	_, ok := parsedToken.Claims.(*model.JwtCustomClaims)
+	if !ok || !parsedToken.Valid {
+		return response, fmt.Errorf("invalid token")
 	}
-	// If the token is not valid, return an error
-	return response, err
+
+	// Create a new access token
+	accessTokenTime := helpers.GetEnv("JWT_ACCESS_TOKEN_EXPIRES", "3600")
+	accessTokenTimeInt, err := strconv.Atoi(accessTokenTime)
+	if err != nil {
+		return response, err
+	}
+	jwtExpireTime := jwt.NewNumericDate(time.Now().Add(time.Duration(accessTokenTimeInt) * time.Second))
+
+	newClaims := &model.JwtCustomClaims{
+		int(user.ID),
+		user.Name,
+		user.Email,
+		user.Role.Name,
+		jwt.RegisteredClaims{
+			ExpiresAt: jwtExpireTime,
+		},
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, newClaims)
+	t, err := token.SignedString([]byte(helpers.GetEnv("JWT_ACCESS_TOKEN_SECRET", "secret")))
+	if err != nil {
+		return response, err
+	}
+
+	response.ID = int(user.ID)
+	response.Email = user.Email
+	response.Name = user.Name
+	response.Role = user.Role.Name
+	response.Position = user.Position.Name
+	response.Image = helpers.GetEnv("AWS_S3_URL", "") + user.File.FilePath
+	response.Token = t
+	response.RefreshToken = refreshTokenData.Token
+
+	return response, nil
 }
 
 func (s *UserService) Logout(ctx context.Context, userID int) error {

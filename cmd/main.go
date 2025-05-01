@@ -83,6 +83,7 @@ func main() {
 	v1 := e.Group("/api/v1")
 	{
 		v1.POST("/auth/login", userHandler.Login)
+		v1.POST("/auth/refresh-token", userHandler.RefreshToken)
 
 		v1WithAuth := v1.Group("")
 		v1WithAuth.Use(echojwt.WithConfig(echojwt.Config{
@@ -94,7 +95,6 @@ func main() {
 		v1WithAuth.Use(customMiddleware.Auth)
 
 		v1WithAuth.GET("/auth/me", userHandler.GetMe)
-		v1WithAuth.POST("/auth/refresh-token", userHandler.RefreshToken)
 		v1WithAuth.POST("/auth/logout", userHandler.Logout)
 
 		v1WithAuth.POST("/upload", fileHandler.UploadFile)

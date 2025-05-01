@@ -168,27 +168,20 @@ func (h *UserHandler) UpdateUserProfile(c echo.Context) error {
 
 func (h *UserHandler) RefreshToken(c echo.Context) error {
 	ctx := c.Request().Context()
-	cookie, err := c.Cookie("refresh_token")
 
-	if err != nil {
-		if err == http.ErrNoCookie {
-			return helpers.SendResponseHTTP(c, http.StatusUnauthorized, "Refresh token not found", nil)
-		}
-		return helpers.SendResponseHTTP(c, http.StatusInternalServerError, "Failed to get refresh token", err.Error())
+	refreshToken := struct {
+		RefreshToken string `json:"refresh_token"`
+	}{}
+	if err := c.Bind(&refreshToken); err != nil {
+		return helpers.SendResponseHTTP(c, http.StatusBadRequest, "Invalid payload", err.Error())
 	}
 
-	refreshTokenData := cookie.Value
-	userID, ok := c.Get("userID").(int)
-	if !ok {
-		return helpers.SendResponseHTTP(c, http.StatusForbidden, "Unauthorized", nil)
-	}
-
-	refreshToken, err := h.userService.RefreshToken(ctx, userID, refreshTokenData)
+	newToken, err := h.userService.RefreshToken(ctx, refreshToken.RefreshToken)
 	if err != nil {
 		return helpers.SendResponseHTTP(c, http.StatusInternalServerError, "Failed to refresh token", err.Error())
 	}
 
-	return helpers.SendResponseHTTP(c, http.StatusOK, "Successfully to refresh token", refreshToken)
+	return helpers.SendResponseHTTP(c, http.StatusOK, "Successfully to refresh token", newToken)
 }
 
 func (h *UserHandler) Logout(c echo.Context) error {
