@@ -38,10 +38,10 @@ func (s *DocumentService) GetAllDocuments(ctx context.Context, userID int) ([]*d
 			Slug:     document.Slug,
 			FilePath: document.FilePath,
 			User: dto.UserDocumentResponse{
-				ID:        document.User.ID,
-				Name:      document.User.Name,
-				Email:     document.User.Email,
-				ImagePath: document.User.ImagePath,
+				ID:    document.User.ID,
+				Name:  document.User.Name,
+				Email: document.User.Email,
+				Image: helpers.GetEnv("AWS_S3_URL", "") + document.User.File.FilePath,
 			},
 			Category: dto.CategoryResponse{
 				ID:   document.Category.ID,
@@ -65,10 +65,10 @@ func (s *DocumentService) GetDocumentBySlug(ctx context.Context, slug string, us
 		Slug:        document.Slug,
 		FilePath:    document.FilePath,
 		User: dto.UserDocumentResponse{
-			ID:        document.User.ID,
-			Name:      document.User.Name,
-			Email:     document.User.Email,
-			ImagePath: document.User.ImagePath,
+			ID:    document.User.ID,
+			Name:  document.User.Name,
+			Email: document.User.Email,
+			Image: helpers.GetEnv("AWS_S3_URL", "") + document.User.File.FilePath,
 		},
 		Category: dto.CategoryResponse{
 			ID:   document.Category.ID,
@@ -138,10 +138,10 @@ func (s *DocumentService) CreateDocument(ctx context.Context, documentRequest *d
 		Slug:     document.Slug,
 		FilePath: document.FilePath,
 		User: dto.UserDocumentResponse{
-			ID:        document.User.ID,
-			Name:      document.User.Name,
-			Email:     document.User.Email,
-			ImagePath: document.User.ImagePath,
+			ID:    document.User.ID,
+			Name:  document.User.Name,
+			Email: document.User.Email,
+			Image: helpers.GetEnv("AWS_S3_URL", "") + document.User.File.FilePath,
 		},
 		Category: dto.CategoryResponse{
 			ID:   document.Category.ID,
@@ -189,10 +189,10 @@ func (s *DocumentService) GetDocumentProgress(ctx context.Context, slug string, 
 			Status:     approvalRequest.Status,
 			ResolvedAt: approvalRequest.ResolvedAt,
 			User: dto.UserDocumentResponse{
-				ID:        approvalRequest.User.ID,
-				Name:      approvalRequest.User.Name,
-				Email:     approvalRequest.User.Email,
-				ImagePath: approvalRequest.User.ImagePath,
+				ID:    approvalRequest.User.ID,
+				Name:  approvalRequest.User.Name,
+				Email: approvalRequest.User.Email,
+				Image: helpers.GetEnv("AWS_S3_URL", "") + document.User.File.FilePath,
 			},
 		})
 	}
@@ -290,10 +290,10 @@ func (s *DocumentService) GetDocumentApprovalRequest(ctx context.Context, userID
 				FilePath: myApprovalRequest.Document.FilePath,
 				Status:   myApprovalRequest.Status,
 				User: dto.UserDocumentResponse{
-					ID:        myApprovalRequest.Document.User.ID,
-					Name:      myApprovalRequest.Document.User.Name,
-					Email:     myApprovalRequest.Document.User.Email,
-					ImagePath: myApprovalRequest.Document.User.ImagePath,
+					ID:    myApprovalRequest.Document.User.ID,
+					Name:  myApprovalRequest.Document.User.Name,
+					Email: myApprovalRequest.Document.User.Email,
+					Image: helpers.GetEnv("AWS_S3_URL", "") + myApprovalRequest.Document.User.File.FilePath,
 				},
 				Category: dto.CategoryResponse{
 					ID:   myApprovalRequest.Document.Category.ID,
@@ -321,10 +321,10 @@ func (s *DocumentService) GetDocumentApprovalHistory(ctx context.Context, userID
 			FilePath: approvalRequest.Document.FilePath,
 			Status:   approvalRequest.Status,
 			User: dto.UserDocumentResponse{
-				ID:        approvalRequest.Document.User.ID,
-				Name:      approvalRequest.Document.User.Name,
-				Email:     approvalRequest.Document.User.Email,
-				ImagePath: approvalRequest.Document.User.ImagePath,
+				ID:    approvalRequest.Document.User.ID,
+				Name:  approvalRequest.Document.User.Name,
+				Email: approvalRequest.Document.User.Email,
+				Image: helpers.GetEnv("AWS_S3_URL", "") + approvalRequest.Document.User.File.FilePath,
 			},
 			Category: dto.CategoryResponse{
 				ID:   approvalRequest.Document.Category.ID,

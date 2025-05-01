@@ -110,20 +110,38 @@ func (s *UserService) Login(ctx context.Context, email string, password string) 
 }
 
 // GetAllUsers retrieves all users from the database
-func (s *UserService) GetAllUsers(ctx context.Context) ([]*model.User, error) {
+func (s *UserService) GetAllUsers(ctx context.Context) ([]*dto.UserResponse, error) {
 	users, err := s.userRepository.GetAllUsers(ctx)
 	if err != nil {
 		return nil, err
 	}
+
+	response := []*dto.UserResponse{}
 	for _, user := range users {
-		user.Password = ""
+		response = append(response, &dto.UserResponse{
+			ID:         user.ID,
+			Name:       user.Name,
+			Email:      user.Email,
+			RoleID:     user.RoleID,
+			PositionID: user.PositionID,
+			Image:      helpers.GetEnv("AWS_S3_URL", "") + user.File.FilePath,
+			Role: dto.Role{
+				ID:   user.Role.ID,
+				Name: user.Role.Name,
+			},
+			Position: dto.Position{
+				ID:                 user.Position.ID,
+				Name:               user.Position.Name,
+				RequiresSignatures: user.Position.RequiresSignatures,
+			},
+		})
 	}
 
-	return users, nil
+	return response, nil
 }
 
 // CreateUser creates a new user
-func (s *UserService) CreateUser(ctx context.Context, user *model.User) (*model.User, error) {
+func (s *UserService) CreateUser(ctx context.Context, user *model.User) (*dto.UserResponse, error) {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return nil, err
@@ -136,21 +154,55 @@ func (s *UserService) CreateUser(ctx context.Context, user *model.User) (*model.
 		return nil, err
 	}
 
-	newUser.Password = ""
-	return newUser, nil
+	response := &dto.UserResponse{
+		ID:         newUser.ID,
+		Name:       newUser.Name,
+		Email:      newUser.Email,
+		RoleID:     newUser.RoleID,
+		PositionID: newUser.PositionID,
+		Image:      helpers.GetEnv("AWS_S3_URL", "") + newUser.File.FilePath,
+		Role: dto.Role{
+			ID:   newUser.Role.ID,
+			Name: newUser.Role.Name,
+		},
+		Position: dto.Position{
+			ID:                 newUser.Position.ID,
+			Name:               newUser.Position.Name,
+			RequiresSignatures: newUser.Position.RequiresSignatures,
+		},
+	}
+
+	return response, nil
 }
 
-func (s *UserService) GetUserByID(ctx context.Context, id int) (*model.User, error) {
+func (s *UserService) GetUserByID(ctx context.Context, id int) (*dto.UserResponse, error) {
 	user, err := s.userRepository.GetUserByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 
-	user.Password = ""
-	return user, nil
+	response := &dto.UserResponse{
+		ID:         user.ID,
+		Name:       user.Name,
+		Email:      user.Email,
+		RoleID:     user.RoleID,
+		PositionID: user.PositionID,
+		Image:      helpers.GetEnv("AWS_S3_URL", "") + user.File.FilePath,
+		Role: dto.Role{
+			ID:   user.Role.ID,
+			Name: user.Role.Name,
+		},
+		Position: dto.Position{
+			ID:                 user.Position.ID,
+			Name:               user.Position.Name,
+			RequiresSignatures: user.Position.RequiresSignatures,
+		},
+	}
+
+	return response, nil
 }
 
-func (s *UserService) UpdateUser(ctx context.Context, user *model.User) (*model.User, error) {
+func (s *UserService) UpdateUser(ctx context.Context, user *model.User) (*dto.UserResponse, error) {
 	// Check if the user exists
 	existingUser, err := s.userRepository.GetUserByID(ctx, int(user.ID))
 	if err != nil {
@@ -165,8 +217,25 @@ func (s *UserService) UpdateUser(ctx context.Context, user *model.User) (*model.
 		return nil, err
 	}
 
-	updatedUser.Password = ""
-	return updatedUser, nil
+	response := &dto.UserResponse{
+		ID:         updatedUser.ID,
+		Name:       updatedUser.Name,
+		Email:      updatedUser.Email,
+		RoleID:     updatedUser.RoleID,
+		PositionID: updatedUser.PositionID,
+		Image:      helpers.GetEnv("AWS_S3_URL", "") + updatedUser.File.FilePath,
+		Role: dto.Role{
+			ID:   updatedUser.Role.ID,
+			Name: updatedUser.Role.Name,
+		},
+		Position: dto.Position{
+			ID:                 updatedUser.Position.ID,
+			Name:               updatedUser.Position.Name,
+			RequiresSignatures: updatedUser.Position.RequiresSignatures,
+		},
+	}
+
+	return response, nil
 }
 
 func (s *UserService) DeleteUser(ctx context.Context, id int) error {
@@ -194,9 +263,9 @@ func (s *UserService) GetMe(ctx context.Context, id int) (*dto.UserResponse, err
 		ID:         user.ID,
 		Name:       user.Name,
 		Email:      user.Email,
-		ImagePath:  user.ImagePath,
 		RoleID:     user.RoleID,
 		PositionID: user.PositionID,
+		Image:      helpers.GetEnv("AWS_S3_URL", "") + user.File.FilePath,
 		Role: dto.Role{
 			ID:   user.Role.ID,
 			Name: user.Role.Name,
@@ -223,9 +292,9 @@ func (s *UserService) GetApproverReviewerUsers(ctx context.Context) ([]*dto.User
 			ID:         user.ID,
 			Name:       user.Name,
 			Email:      user.Email,
-			ImagePath:  user.ImagePath,
 			RoleID:     user.RoleID,
 			PositionID: user.PositionID,
+			Image:      helpers.GetEnv("AWS_S3_URL", "") + user.File.FilePath,
 			Role: dto.Role{
 				ID:   user.Role.ID,
 				Name: user.Role.Name,
@@ -250,7 +319,6 @@ func (s *UserService) UpdateUserProfile(ctx context.Context, user *dto.UpdatePro
 
 	// Update the user fields
 	existingUser.Name = user.Name
-	existingUser.ImagePath = user.ImagePath
 
 	// Save the updated user to the database
 	updatedUser, err := s.userRepository.UpdateUser(ctx, existingUser)
@@ -262,9 +330,9 @@ func (s *UserService) UpdateUserProfile(ctx context.Context, user *dto.UpdatePro
 		ID:         updatedUser.ID,
 		Name:       updatedUser.Name,
 		Email:      updatedUser.Email,
-		ImagePath:  updatedUser.ImagePath,
 		RoleID:     updatedUser.RoleID,
 		PositionID: updatedUser.PositionID,
+		Image:      helpers.GetEnv("AWS_S3_URL", "") + updatedUser.File.FilePath,
 	}
 
 	return response, nil

@@ -84,7 +84,7 @@ func (s *FileService) UploadFile(ctx context.Context, file multipart.File, fileH
 
 	resp = &model.File{
 		FileName:    fileHeader.Filename,
-		FilePath:    newFileName,
+		FilePath:    folder + "/" + newFileName,
 		ContentType: contentType,
 	}
 
