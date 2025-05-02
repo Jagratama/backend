@@ -89,3 +89,27 @@ func (r *DocumentRepository) GetAllDocumentsNeedApprove(ctx context.Context, use
 	err := r.db.WithContext(ctx).Preload("ApprovalRequest").Find(&documents).Error
 	return documents, err
 }
+
+func (r *DocumentRepository) CountAllMyDocuments(ctx context.Context, userID int) (int64, error) {
+	var count int64
+	err := r.db.WithContext(ctx).Model(&model.Document{}).Where("user_id = ?", userID).Count(&count).Error
+	return count, err
+}
+
+func (r *DocumentRepository) CountPendingDocuments(ctx context.Context, userID int) (int64, error) {
+	var count int64
+	err := r.db.WithContext(ctx).Model(&model.Document{}).Where("user_id = ?", userID).Where("last_status = ?", "pending").Count(&count).Error
+	return count, err
+}
+
+func (r *DocumentRepository) CountRejectedDocuments(ctx context.Context, userID int) (int64, error) {
+	var count int64
+	err := r.db.WithContext(ctx).Model(&model.Document{}).Where("user_id = ?", userID).Where("last_status = ?", "rejected").Count(&count).Error
+	return count, err
+}
+
+func (r *DocumentRepository) CountApprovedDocuments(ctx context.Context, userID int) (int64, error) {
+	var count int64
+	err := r.db.WithContext(ctx).Model(&model.Document{}).Where("user_id = ?", userID).Where("last_status = ?", "approved").Count(&count).Error
+	return count, err
+}

@@ -125,6 +125,8 @@ func main() {
 		v1WithAuth.GET("/documents/to-review", documentHandler.GetDocumentApprovalRequest)
 		v1WithAuth.GET("/documents/to-review/history", documentHandler.GetDocumentApprovalHistory)
 
+		v1WithAuth.GET("/documents/counter", documentHandler.GetCountAllMyDocuments)
+
 		v1WithAuth.GET("/categories", categoryHandler.GetAllCategories)
 	}
 

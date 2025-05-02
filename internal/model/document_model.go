@@ -9,6 +9,7 @@ type Document struct {
 	CategoryID  uint      `json:"category_id"`
 	Title       string    `json:"title"`
 	Slug        string    `json:"slug"`
+	LastStatus  string    `json:"last_status" gorm:"type:text;check:last_status IN ('pending','approved','rejected');default:'pending';not null"`
 	Description string    `json:"description"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`

@@ -335,3 +335,34 @@ func (s *DocumentService) GetDocumentApprovalHistory(ctx context.Context, userID
 
 	return response, nil
 }
+
+func (s *DocumentService) GetCountAllMyDocuments(ctx context.Context, userID int) (dto.DocumentCountResponse, error) {
+	response := dto.DocumentCountResponse{}
+	countAllDocuments, err := s.documentRepository.CountAllMyDocuments(ctx, userID)
+	if err != nil {
+		return response, err
+	}
+
+	countPendingDocuments, err := s.documentRepository.CountPendingDocuments(ctx, userID)
+	if err != nil {
+		return response, err
+	}
+
+	countRejectedDocuments, err := s.documentRepository.CountRejectedDocuments(ctx, userID)
+	if err != nil {
+		return response, err
+	}
+
+	countApprovedDocuments, err := s.documentRepository.CountApprovedDocuments(ctx, userID)
+	if err != nil {
+		return response, err
+	}
+
+	response = dto.DocumentCountResponse{
+		TotalDocument: int(countAllDocuments),
+		TotalRejected: int(countRejectedDocuments),
+		TotalPending:  int(countPendingDocuments),
+		TotalApproved: int(countApprovedDocuments),
+	}
+	return response, nil
+}

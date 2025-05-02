@@ -171,3 +171,16 @@ func (h *DocumentHandler) GetDocumentApprovalHistory(c echo.Context) error {
 	}
 	return helpers.SendResponseHTTP(c, http.StatusOK, "Successfully to get approval request", approvalRequests)
 }
+
+func (h *DocumentHandler) GetCountAllMyDocuments(c echo.Context) error {
+	ctx := c.Request().Context()
+	userID, ok := c.Get("userID").(int)
+	if !ok {
+		return helpers.SendResponseHTTP(c, http.StatusForbidden, "Unauthorized", nil)
+	}
+	count, err := h.documentService.GetCountAllMyDocuments(ctx, userID)
+	if err != nil {
+		return helpers.SendResponseHTTP(c, http.StatusInternalServerError, "Failed to get count my documents", err.Error())
+	}
+	return helpers.SendResponseHTTP(c, http.StatusOK, "Successfully to get count my documents", count)
+}

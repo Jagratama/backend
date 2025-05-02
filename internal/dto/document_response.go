@@ -32,3 +32,10 @@ type DocumentRequestResponse struct {
 	User     UserDocumentResponse `json:"user"`
 	Category CategoryResponse     `json:"category"`
 }
+
+type DocumentCountResponse struct {
+	TotalDocument int `json:"total_document"`
+	TotalRejected int `json:"total_rejected"`
+	TotalPending  int `json:"total_pending"`
+	TotalApproved int `json:"total_approved"`
+}
