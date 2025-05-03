@@ -18,7 +18,7 @@ func NewCategoryService(categoryRepository repository.CategoryRepository) *Categ
 func (s *CategoryService) GetAllCategories() ([]*model.Category, error) {
 	categories, err := s.categoryRepository.GetAllCategories()
 	if err != nil {
-		return nil, err
+		return []*model.Category{}, err
 	}
 	return categories, nil
 }

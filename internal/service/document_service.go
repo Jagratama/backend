@@ -30,7 +30,7 @@ func (s *DocumentService) GetAllDocuments(ctx context.Context, userID int) ([]*d
 		return nil, err
 	}
 
-	var response []*dto.DocumentResponse
+	response := make([]*dto.DocumentResponse, 0)
 	for _, document := range documents {
 		response = append(response, &dto.DocumentResponse{
 			ID:    document.ID,

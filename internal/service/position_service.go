@@ -19,7 +19,7 @@ func NewPositionService(positionRepository repository.PositionRepository) *Posit
 func (s *PositionService) GetAllPositions(ctx context.Context) ([]*model.Position, error) {
 	positions, err := s.positionRepository.GetAllPositions(ctx)
 	if err != nil {
-		return nil, err
+		return []*model.Position{}, err
 	}
 	return positions, nil
 }
