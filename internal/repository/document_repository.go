@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"errors"
+	"jagratama-backend/internal/dto"
 	"jagratama-backend/internal/model"
 
 	"gorm.io/gorm"
@@ -114,11 +115,17 @@ func (r *DocumentRepository) CountApprovedDocuments(ctx context.Context, userID 
 	return count, err
 }
 
-func (r *DocumentRepository) UpdateDocumentAlreadyApproved(ctx context.Context, documentID int) error {
+func (r *DocumentRepository) UpdateDocumentAlreadyApproved(ctx context.Context, documentID int, status string) error {
 	var document model.Document
+
+	var approvedAt interface{} = nil
+	if status == dto.StatusApprove {
+		approvedAt = gorm.Expr("NOW()")
+	}
+
 	err := r.db.WithContext(ctx).Model(&document).Where("id = ?", documentID).UpdateColumns(map[string]interface{}{
-		"last_status": "approved",
-		"approved_at": gorm.Expr("NOW()"),
+		"last_status": status,
+		"approved_at": approvedAt,
 	}).Error
 	if err != nil {
 		return err

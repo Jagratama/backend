@@ -283,15 +283,19 @@ func (s *DocumentService) ApprovalAction(ctx context.Context, slug string, userI
 		return err
 	}
 
-	pendingApprovals, err := s.approvalRequestRepository.GetApprovalPendingByDocumentID(ctx, int(document.ID))
+	unApprovedApprovals, err := s.approvalRequestRepository.GetUnApprovedApprovalByDocumentID(ctx, int(document.ID))
 	if err != nil {
 		return err
 	}
-	if len(pendingApprovals) == 0 {
-		err = s.documentRepository.UpdateDocumentAlreadyApproved(ctx, int(document.ID))
-		if err != nil {
-			return err
-		}
+
+	documentLastStatus := approvalData.Status
+	if len(unApprovedApprovals) == 0 && approvalData.Status == dto.StatusApprove {
+		documentLastStatus = dto.StatusApprove
+	}
+
+	err = s.documentRepository.UpdateDocumentAlreadyApproved(ctx, int(document.ID), documentLastStatus)
+	if err != nil {
+		return err
 	}
 
 	return nil
