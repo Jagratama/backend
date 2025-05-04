@@ -208,10 +208,16 @@ func (s *DocumentService) GetDocumentProgress(ctx context.Context, slug string, 
 
 	var response []*dto.ApprovalDocumentResponse
 	for _, approvalRequest := range approvalRequests {
+		approvalFilePath := helpers.GetEnv("AWS_S3_URL", "") + approvalRequest.FilePath
+		if approvalRequest.FilePath == "" {
+			approvalFilePath = ""
+		}
+
 		response = append(response, &dto.ApprovalDocumentResponse{
 			ID:         approvalRequest.ID,
 			Note:       approvalRequest.Note,
 			Status:     approvalRequest.Status,
+			FilePath:   approvalFilePath,
 			ResolvedAt: approvalRequest.ResolvedAt,
 			User: dto.UserDocumentResponse{
 				ID:    approvalRequest.User.ID,
