@@ -70,3 +70,14 @@ func (r *ApprovalRequestRepository) GetPendingApprovalRequest(ctx context.Contex
 	}
 	return approvalRequests, nil
 }
+
+func (r *ApprovalRequestRepository) GetApprovalPendingByDocumentID(ctx context.Context, documentID int) ([]*model.ApprovalRequest, error) {
+	var approvalRequests []*model.ApprovalRequest
+
+	err := r.db.WithContext(ctx).Where("document_id = ? AND status = ?", documentID, "pending").Find(&approvalRequests).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return approvalRequests, nil
+}

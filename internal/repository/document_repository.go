@@ -21,14 +21,14 @@ func NewDocumentRepository(db *gorm.DB) *DocumentRepository {
 func (r *DocumentRepository) GetAllDocuments(ctx context.Context, userID int) ([]*model.Document, error) {
 	var documents []*model.Document
 
-	err := r.db.WithContext(ctx).Where("user_id = ?", userID).Preload("File").Preload("User").Preload("User.File").Preload("Category").Find(&documents).Error
+	err := r.db.WithContext(ctx).Where("user_id = ?", userID).Preload("File").Preload("User").Preload("AddressedUser").Preload("User.File").Preload("Category").Find(&documents).Error
 	return documents, err
 }
 
 func (r *DocumentRepository) GetDocumentByID(ctx context.Context, id int) (*model.Document, error) {
 	var document *model.Document
 
-	err := r.db.WithContext(ctx).Where("id = ?", id).Preload("File").Preload("User").Preload("User.File").Preload("Category").First(&document).Error
+	err := r.db.WithContext(ctx).Where("id = ?", id).Preload("File").Preload("User").Preload("AddressedUser").Preload("User.File").Preload("Category").First(&document).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			// Handle not found case specifically
@@ -40,10 +40,10 @@ func (r *DocumentRepository) GetDocumentByID(ctx context.Context, id int) (*mode
 	return document, err
 }
 
-func (r *DocumentRepository) GetDocumentBySlug(ctx context.Context, slug string, userID int) (*model.Document, error) {
+func (r *DocumentRepository) GetDocumentBySlug(ctx context.Context, slug string) (*model.Document, error) {
 	var document model.Document
 
-	err := r.db.WithContext(ctx).Where("slug = ?", slug).Where("user_id", userID).Preload("File").Preload("User").Preload("User.File").Preload("Category").First(&document).Error
+	err := r.db.WithContext(ctx).Where("slug = ?", slug).Preload("File").Preload("User").Preload("AddressedUser").Preload("User.File").Preload("Category").First(&document).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			// Handle not found case specifically
@@ -112,4 +112,16 @@ func (r *DocumentRepository) CountApprovedDocuments(ctx context.Context, userID 
 	var count int64
 	err := r.db.WithContext(ctx).Model(&model.Document{}).Where("user_id = ?", userID).Where("last_status = ?", "approved").Count(&count).Error
 	return count, err
+}
+
+func (r *DocumentRepository) UpdateDocumentAlreadyApproved(ctx context.Context, documentID int) error {
+	var document model.Document
+	err := r.db.WithContext(ctx).Model(&document).Where("id = ?", documentID).UpdateColumns(map[string]interface{}{
+		"last_status": "approved",
+		"approved_at": gorm.Expr("NOW()"),
+	}).Error
+	if err != nil {
+		return err
+	}
+	return nil
 }

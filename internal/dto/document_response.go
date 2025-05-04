@@ -3,18 +3,22 @@ package dto
 import "time"
 
 type DocumentResponse struct {
-	ID          uint      `json:"id"`
-	UserID      uint      `json:"user_id"`
-	CategoryID  uint      `json:"category_id"`
-	Title       string    `json:"title"`
-	Slug        string    `json:"slug"`
-	Description string    `json:"description"`
-	File        string    `json:"file"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
+	ID              uint       `json:"id"`
+	UserID          uint       `json:"user_id"`
+	AddressedUserID uint       `json:"addressed_user_id"`
+	CategoryID      uint       `json:"category_id"`
+	Title           string     `json:"title"`
+	Slug            string     `json:"slug"`
+	Description     string     `json:"description"`
+	File            string     `json:"file"`
+	LastStatus      string     `json:"last_status"`
+	ApprovedAt      *time.Time `json:"approved_at"`
+	CreatedAt       time.Time  `json:"created_at"`
+	UpdatedAt       time.Time  `json:"updated_at"`
 
-	User     UserDocumentResponse `json:"user"`
-	Category CategoryResponse     `json:"category"`
+	User          UserDocumentResponse `json:"user"`
+	AddressedUser UserDocumentResponse `json:"addressed_user"`
+	Category      CategoryResponse     `json:"category"`
 }
 
 type DocumentRequestResponse struct {

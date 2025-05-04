@@ -33,15 +33,23 @@ func (s *DocumentService) GetAllDocuments(ctx context.Context, userID int) ([]*d
 	response := make([]*dto.DocumentResponse, 0)
 	for _, document := range documents {
 		response = append(response, &dto.DocumentResponse{
-			ID:    document.ID,
-			Title: document.Title,
-			Slug:  document.Slug,
-			File:  helpers.GetEnv("AWS_S3_URL", "") + document.File.FilePath,
+			ID:         document.ID,
+			Title:      document.Title,
+			Slug:       document.Slug,
+			File:       helpers.GetEnv("AWS_S3_URL", "") + document.File.FilePath,
+			LastStatus: document.LastStatus,
+			ApprovedAt: document.ApprovedAt,
 			User: dto.UserDocumentResponse{
 				ID:    document.User.ID,
 				Name:  document.User.Name,
 				Email: document.User.Email,
 				Image: helpers.GetEnv("AWS_S3_URL", "") + document.User.File.FilePath,
+			},
+			AddressedUser: dto.UserDocumentResponse{
+				ID:    document.AddressedUser.ID,
+				Name:  document.AddressedUser.Name,
+				Email: document.AddressedUser.Email,
+				Image: helpers.GetEnv("AWS_S3_URL", "") + document.AddressedUser.File.FilePath,
 			},
 			Category: dto.CategoryResponse{
 				ID:   document.Category.ID,
@@ -53,10 +61,11 @@ func (s *DocumentService) GetAllDocuments(ctx context.Context, userID int) ([]*d
 }
 
 func (s *DocumentService) GetDocumentBySlug(ctx context.Context, slug string, userID int) (*dto.DocumentResponse, error) {
-	document, err := s.documentRepository.GetDocumentBySlug(ctx, slug, userID)
+	document, err := s.documentRepository.GetDocumentBySlug(ctx, slug)
 	if err != nil {
 		return nil, err
 	}
+	// authorization validation
 
 	response := &dto.DocumentResponse{
 		ID:          document.ID,
@@ -64,11 +73,19 @@ func (s *DocumentService) GetDocumentBySlug(ctx context.Context, slug string, us
 		Description: document.Description,
 		Slug:        document.Slug,
 		File:        helpers.GetEnv("AWS_S3_URL", "") + document.File.FilePath,
+		LastStatus:  document.LastStatus,
+		ApprovedAt:  document.ApprovedAt,
 		User: dto.UserDocumentResponse{
 			ID:    document.User.ID,
 			Name:  document.User.Name,
 			Email: document.User.Email,
 			Image: helpers.GetEnv("AWS_S3_URL", "") + document.User.File.FilePath,
+		},
+		AddressedUser: dto.UserDocumentResponse{
+			ID:    document.AddressedUser.ID,
+			Name:  document.AddressedUser.Name,
+			Email: document.AddressedUser.Email,
+			Image: helpers.GetEnv("AWS_S3_URL", "") + document.AddressedUser.File.FilePath,
 		},
 		Category: dto.CategoryResponse{
 			ID:   document.Category.ID,
@@ -79,6 +96,10 @@ func (s *DocumentService) GetDocumentBySlug(ctx context.Context, slug string, us
 }
 
 func (s *DocumentService) CreateDocument(ctx context.Context, documentRequest *dto.CreateDocumentRequest) (*dto.DocumentResponse, error) {
+	if len(documentRequest.ApproverEmails) < 2 {
+		return nil, fmt.Errorf("approver emails must be at least 2")
+	}
+
 	// Validate approvers can't repeat
 	approverMap := make(map[string]bool)
 	approverIDs := []int{}
@@ -106,14 +127,16 @@ func (s *DocumentService) CreateDocument(ctx context.Context, documentRequest *d
 	}
 	documentRequest.Slug = slug
 
+	lastApproverID := approverIDs[len(approverIDs)-1]
 	// Create the document
 	document := &model.Document{
-		UserID:      documentRequest.UserID,
-		CategoryID:  documentRequest.CategoryID,
-		Title:       documentRequest.Title,
-		Slug:        documentRequest.Slug,
-		Description: documentRequest.Description,
-		FileID:      documentRequest.FileID,
+		UserID:          documentRequest.UserID,
+		AddressedUserID: uint(lastApproverID),
+		FileID:          documentRequest.FileID,
+		CategoryID:      documentRequest.CategoryID,
+		Title:           documentRequest.Title,
+		Slug:            documentRequest.Slug,
+		Description:     documentRequest.Description,
 	}
 	newDocument, err := s.documentRepository.CreateDocument(ctx, document)
 	if err != nil {
@@ -157,7 +180,7 @@ func (s *DocumentService) UpdateDocument(ctx context.Context, document *model.Do
 }
 
 func (s *DocumentService) DeleteDocument(ctx context.Context, slug string, userID int) error {
-	_, err := s.documentRepository.GetDocumentBySlug(ctx, slug, userID)
+	_, err := s.documentRepository.GetDocumentBySlug(ctx, slug)
 	if err != nil {
 		return err
 	}
@@ -167,10 +190,12 @@ func (s *DocumentService) DeleteDocument(ctx context.Context, slug string, userI
 }
 
 func (s *DocumentService) GetDocumentProgress(ctx context.Context, slug string, userID int) ([]*dto.ApprovalDocumentResponse, error) {
-	document, err := s.documentRepository.GetDocumentBySlug(ctx, slug, userID)
+	document, err := s.documentRepository.GetDocumentBySlug(ctx, slug)
 	if err != nil {
 		return nil, err
 	}
+
+	// authorization validation
 
 	approvalRequests, err := s.approvalRequestRepository.GetApprovalRequestsByDocumentID(ctx, int(document.ID))
 	if err != nil {
@@ -208,7 +233,7 @@ func (s *DocumentService) ApprovalAction(ctx context.Context, slug string, userI
 		return fmt.Errorf("note is required when rejecting")
 	}
 
-	document, err := s.documentRepository.GetDocumentBySlug(ctx, slug, userID)
+	document, err := s.documentRepository.GetDocumentBySlug(ctx, slug)
 	if err != nil {
 		return err
 	}
@@ -249,6 +274,17 @@ func (s *DocumentService) ApprovalAction(ctx context.Context, slug string, userI
 	err = s.approvalRequestRepository.UpdateApprovalRequest(ctx, int(document.ID), userID, approvalData)
 	if err != nil {
 		return err
+	}
+
+	pendingApprovals, err := s.approvalRequestRepository.GetApprovalPendingByDocumentID(ctx, int(document.ID))
+	if err != nil {
+		return err
+	}
+	if len(pendingApprovals) == 0 {
+		err = s.documentRepository.UpdateDocumentAlreadyApproved(ctx, int(document.ID))
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
