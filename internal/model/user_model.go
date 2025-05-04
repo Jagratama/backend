@@ -4,7 +4,7 @@ import "time"
 
 type User struct {
 	ID         uint      `json:"id" gorm:"primaryKey"`
-	ImageID    uint      `json:"image_id"`
+	ImageID    *uint     `json:"image_id" gorm:"default:1;not null"`
 	RoleID     uint      `json:"role_id"`
 	PositionID uint      `json:"position_id"`
 	Name       string    `json:"name" gorm:"size:100;not null"`
