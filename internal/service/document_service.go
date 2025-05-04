@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"jagratama-backend/internal/config"
 	"jagratama-backend/internal/dto"
 	"jagratama-backend/internal/helpers"
 	"jagratama-backend/internal/model"
@@ -36,20 +37,20 @@ func (s *DocumentService) GetAllDocuments(ctx context.Context, userID int) ([]*d
 			ID:         document.ID,
 			Title:      document.Title,
 			Slug:       document.Slug,
-			File:       helpers.GetEnv("AWS_S3_URL", "") + document.File.FilePath,
+			File:       config.GetEnv("AWS_S3_URL", "") + document.File.FilePath,
 			LastStatus: document.LastStatus,
 			ApprovedAt: document.ApprovedAt,
 			User: dto.UserDocumentResponse{
 				ID:    document.User.ID,
 				Name:  document.User.Name,
 				Email: document.User.Email,
-				Image: helpers.GetEnv("AWS_S3_URL", "") + document.User.File.FilePath,
+				Image: config.GetEnv("AWS_S3_URL", "") + document.User.File.FilePath,
 			},
 			AddressedUser: dto.UserDocumentResponse{
 				ID:    document.AddressedUser.ID,
 				Name:  document.AddressedUser.Name,
 				Email: document.AddressedUser.Email,
-				Image: helpers.GetEnv("AWS_S3_URL", "") + document.AddressedUser.File.FilePath,
+				Image: config.GetEnv("AWS_S3_URL", "") + document.AddressedUser.File.FilePath,
 			},
 			Category: dto.CategoryResponse{
 				ID:   document.Category.ID,
@@ -72,20 +73,20 @@ func (s *DocumentService) GetDocumentBySlug(ctx context.Context, slug string, us
 		Title:       document.Title,
 		Description: document.Description,
 		Slug:        document.Slug,
-		File:        helpers.GetEnv("AWS_S3_URL", "") + document.File.FilePath,
+		File:        config.GetEnv("AWS_S3_URL", "") + document.File.FilePath,
 		LastStatus:  document.LastStatus,
 		ApprovedAt:  document.ApprovedAt,
 		User: dto.UserDocumentResponse{
 			ID:    document.User.ID,
 			Name:  document.User.Name,
 			Email: document.User.Email,
-			Image: helpers.GetEnv("AWS_S3_URL", "") + document.User.File.FilePath,
+			Image: config.GetEnv("AWS_S3_URL", "") + document.User.File.FilePath,
 		},
 		AddressedUser: dto.UserDocumentResponse{
 			ID:    document.AddressedUser.ID,
 			Name:  document.AddressedUser.Name,
 			Email: document.AddressedUser.Email,
-			Image: helpers.GetEnv("AWS_S3_URL", "") + document.AddressedUser.File.FilePath,
+			Image: config.GetEnv("AWS_S3_URL", "") + document.AddressedUser.File.FilePath,
 		},
 		Category: dto.CategoryResponse{
 			ID:   document.Category.ID,
@@ -159,12 +160,12 @@ func (s *DocumentService) CreateDocument(ctx context.Context, documentRequest *d
 		ID:    document.ID,
 		Title: document.Title,
 		Slug:  document.Slug,
-		File:  helpers.GetEnv("AWS_S3_URL", "") + document.File.FilePath,
+		File:  config.GetEnv("AWS_S3_URL", "") + document.File.FilePath,
 		User: dto.UserDocumentResponse{
 			ID:    document.User.ID,
 			Name:  document.User.Name,
 			Email: document.User.Email,
-			Image: helpers.GetEnv("AWS_S3_URL", "") + document.User.File.FilePath,
+			Image: config.GetEnv("AWS_S3_URL", "") + document.User.File.FilePath,
 		},
 		Category: dto.CategoryResponse{
 			ID:   document.Category.ID,
@@ -208,7 +209,7 @@ func (s *DocumentService) GetDocumentProgress(ctx context.Context, slug string, 
 
 	var response []*dto.ApprovalDocumentResponse
 	for _, approvalRequest := range approvalRequests {
-		approvalFilePath := helpers.GetEnv("AWS_S3_URL", "") + approvalRequest.FilePath
+		approvalFilePath := config.GetEnv("AWS_S3_URL", "") + approvalRequest.FilePath
 		if approvalRequest.FilePath == "" {
 			approvalFilePath = ""
 		}
@@ -223,7 +224,7 @@ func (s *DocumentService) GetDocumentProgress(ctx context.Context, slug string, 
 				ID:    approvalRequest.User.ID,
 				Name:  approvalRequest.User.Name,
 				Email: approvalRequest.User.Email,
-				Image: helpers.GetEnv("AWS_S3_URL", "") + document.User.File.FilePath,
+				Image: config.GetEnv("AWS_S3_URL", "") + document.User.File.FilePath,
 			},
 		})
 	}
@@ -329,13 +330,13 @@ func (s *DocumentService) GetDocumentApprovalRequest(ctx context.Context, userID
 				ID:     myApprovalRequest.Document.ID,
 				Title:  myApprovalRequest.Document.Title,
 				Slug:   myApprovalRequest.Document.Slug,
-				File:   helpers.GetEnv("AWS_S3_URL", "") + myApprovalRequest.Document.File.FilePath,
+				File:   config.GetEnv("AWS_S3_URL", "") + myApprovalRequest.Document.File.FilePath,
 				Status: myApprovalRequest.Status,
 				User: dto.UserDocumentResponse{
 					ID:    myApprovalRequest.Document.User.ID,
 					Name:  myApprovalRequest.Document.User.Name,
 					Email: myApprovalRequest.Document.User.Email,
-					Image: helpers.GetEnv("AWS_S3_URL", "") + myApprovalRequest.Document.User.File.FilePath,
+					Image: config.GetEnv("AWS_S3_URL", "") + myApprovalRequest.Document.User.File.FilePath,
 				},
 				Category: dto.CategoryResponse{
 					ID:   myApprovalRequest.Document.Category.ID,
@@ -360,13 +361,13 @@ func (s *DocumentService) GetDocumentApprovalHistory(ctx context.Context, userID
 			ID:     approvalRequest.Document.ID,
 			Title:  approvalRequest.Document.Title,
 			Slug:   approvalRequest.Document.Slug,
-			File:   helpers.GetEnv("AWS_S3_URL", "") + approvalRequest.Document.File.FilePath,
+			File:   config.GetEnv("AWS_S3_URL", "") + approvalRequest.Document.File.FilePath,
 			Status: approvalRequest.Status,
 			User: dto.UserDocumentResponse{
 				ID:    approvalRequest.Document.User.ID,
 				Name:  approvalRequest.Document.User.Name,
 				Email: approvalRequest.Document.User.Email,
-				Image: helpers.GetEnv("AWS_S3_URL", "") + approvalRequest.Document.User.File.FilePath,
+				Image: config.GetEnv("AWS_S3_URL", "") + approvalRequest.Document.User.File.FilePath,
 			},
 			Category: dto.CategoryResponse{
 				ID:   approvalRequest.Document.Category.ID,

@@ -1,4 +1,4 @@
-package helpers
+package config
 
 import (
 	"log"
@@ -8,7 +8,7 @@ import (
 
 var Env = map[string]string{}
 
-func SetupConfig() {
+func SetupEnv() {
 	var err error
 	Env, err = godotenv.Read(".env")
 	if err != nil {

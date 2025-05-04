@@ -2,8 +2,9 @@ package main
 
 import (
 	"fmt"
+	"jagratama-backend/internal/config"
+	"jagratama-backend/internal/database/seeder"
 	"jagratama-backend/internal/handler"
-	"jagratama-backend/internal/helpers"
 	"jagratama-backend/internal/model"
 	"jagratama-backend/internal/pkg/aws"
 	"jagratama-backend/internal/repository"
@@ -15,32 +16,34 @@ import (
 	echojwt "github.com/labstack/echo-jwt"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
 )
 
 func main() {
-	helpers.SetupConfig()
+	config.SetupEnv()
 
-	mode := helpers.GetEnv("APP_ENV", "development")
-	dsn := fmt.Sprintf("host=%s user=%s dbname=%s port=%s sslmode=disable TimeZone=Asia/Jakarta", helpers.GetEnv("DB_HOST", "localhost"), helpers.GetEnv("DB_USER", ""), helpers.GetEnv("DB_NAME", ""), helpers.GetEnv("DB_PORT", ""))
-	if mode == "production" {
-		dsn = fmt.Sprintf("host=%s user=%s dbname=%s port=%s password=%s sslmode=require TimeZone=Asia/Jakarta", helpers.GetEnv("DB_HOST", "localhost"), helpers.GetEnv("DB_USER", ""), helpers.GetEnv("DB_NAME", ""), helpers.GetEnv("DB_PORT", ""), helpers.GetEnv("DB_PASSWORD", ""))
-	}
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	// Connect to the database
+	db, err := config.ConnectDB()
 	if err != nil {
-		panic("Failed to connect to database")
+		fmt.Printf("Failed to connect to database %v", err)
+		return
 	}
-
-	// Auto migrate the User table
-	err = db.AutoMigrate(&model.User{}, &model.Document{}, &model.ApprovalRequest{}, &model.RefreshToken{}, &model.File{})
-	if err != nil {
-		fmt.Printf("Failed to migrate database %v", err)
-	}
-
 	fmt.Println("Successfully connected to database")
 
-	s3Uploader, err := aws.NewS3Uploader(helpers.GetEnv("AWS_BUCKET_NAME", ""))
+	// Auto migrate the User table
+	err = config.MigrateDB(db)
+	if err != nil {
+		fmt.Printf("Failed to migrate database %v", err)
+		return
+	}
+	fmt.Println("Successfully migrated database")
+
+	if err := seeder.RunAll(db); err != nil {
+		fmt.Printf("Failed to run seeders: %v", err)
+	} else {
+		fmt.Println("Successfully seeded database")
+	}
+
+	s3Uploader, err := aws.NewS3Uploader(config.GetEnv("AWS_BUCKET_NAME", ""))
 	if err != nil {
 		fmt.Printf("Failed to create S3 uploader: %v", err)
 		return
@@ -87,7 +90,7 @@ func main() {
 
 		v1WithAuth := v1.Group("")
 		v1WithAuth.Use(echojwt.WithConfig(echojwt.Config{
-			SigningKey: []byte(helpers.GetEnv("JWT_ACCESS_TOKEN_SECRET", "secret")),
+			SigningKey: []byte(config.GetEnv("JWT_ACCESS_TOKEN_SECRET", "secret")),
 			NewClaimsFunc: func(c echo.Context) jwt.Claims {
 				return new(model.JwtCustomClaims)
 			},

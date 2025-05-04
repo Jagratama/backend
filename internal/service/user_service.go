@@ -3,8 +3,8 @@ package service
 import (
 	"context"
 	"fmt"
+	"jagratama-backend/internal/config"
 	"jagratama-backend/internal/dto"
-	"jagratama-backend/internal/helpers"
 	"jagratama-backend/internal/model"
 	"jagratama-backend/internal/repository"
 	"strconv"
@@ -40,7 +40,7 @@ func (s *UserService) Login(ctx context.Context, email string, password string) 
 		return response, err
 	}
 
-	accessTokenTime := helpers.GetEnv("JWT_ACCESS_TOKEN_EXPIRES", "3600")
+	accessTokenTime := config.GetEnv("JWT_ACCESS_TOKEN_EXPIRES", "3600")
 	accessTokenTimeInt, err := strconv.Atoi(accessTokenTime)
 	if err != nil {
 		return response, err
@@ -61,12 +61,12 @@ func (s *UserService) Login(ctx context.Context, email string, password string) 
 	fmt.Println(jwtExpireTime)
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	t, err := token.SignedString([]byte(helpers.GetEnv("JWT_ACCESS_TOKEN_SECRET", "secret")))
+	t, err := token.SignedString([]byte(config.GetEnv("JWT_ACCESS_TOKEN_SECRET", "secret")))
 	if err != nil {
 		return response, err
 	}
 
-	RefreshTokenTime := helpers.GetEnv("JWT_REFRESH_TOKEN_EXPIRES", "604800")
+	RefreshTokenTime := config.GetEnv("JWT_REFRESH_TOKEN_EXPIRES", "604800")
 	RefreshTokenTimeInt, err := strconv.Atoi(RefreshTokenTime)
 	if err != nil {
 		return response, err
@@ -82,7 +82,7 @@ func (s *UserService) Login(ctx context.Context, email string, password string) 
 		},
 	}
 	refreshToken := jwt.NewWithClaims(jwt.SigningMethodHS256, claimsRefresh)
-	RefreshToken, err := refreshToken.SignedString([]byte(helpers.GetEnv("JWT_REFRESH_TOKEN_SECRET", "secret")))
+	RefreshToken, err := refreshToken.SignedString([]byte(config.GetEnv("JWT_REFRESH_TOKEN_SECRET", "secret")))
 	if err != nil {
 		return response, err
 	}
@@ -103,7 +103,7 @@ func (s *UserService) Login(ctx context.Context, email string, password string) 
 		ID:           int(user.ID),
 		Email:        user.Email,
 		Name:         user.Name,
-		Image:        helpers.GetEnv("AWS_S3_URL", "") + user.File.FilePath,
+		Image:        config.GetEnv("AWS_S3_URL", "") + user.File.FilePath,
 		Role:         user.Role.Name,
 		Position:     user.Position.Name,
 		Token:        t,
@@ -128,7 +128,7 @@ func (s *UserService) GetAllUsers(ctx context.Context) ([]*dto.UserResponse, err
 			Email:      user.Email,
 			RoleID:     user.RoleID,
 			PositionID: user.PositionID,
-			Image:      helpers.GetEnv("AWS_S3_URL", "") + user.File.FilePath,
+			Image:      config.GetEnv("AWS_S3_URL", "") + user.File.FilePath,
 			Role: dto.Role{
 				ID:   user.Role.ID,
 				Name: user.Role.Name,
@@ -165,7 +165,7 @@ func (s *UserService) CreateUser(ctx context.Context, user *model.User) (*dto.Us
 		Email:      newUser.Email,
 		RoleID:     newUser.RoleID,
 		PositionID: newUser.PositionID,
-		Image:      helpers.GetEnv("AWS_S3_URL", "") + newUser.File.FilePath,
+		Image:      config.GetEnv("AWS_S3_URL", "") + newUser.File.FilePath,
 		Role: dto.Role{
 			ID:   newUser.Role.ID,
 			Name: newUser.Role.Name,
@@ -192,7 +192,7 @@ func (s *UserService) GetUserByID(ctx context.Context, id int) (*dto.UserRespons
 		Email:      user.Email,
 		RoleID:     user.RoleID,
 		PositionID: user.PositionID,
-		Image:      helpers.GetEnv("AWS_S3_URL", "") + user.File.FilePath,
+		Image:      config.GetEnv("AWS_S3_URL", "") + user.File.FilePath,
 		Role: dto.Role{
 			ID:   user.Role.ID,
 			Name: user.Role.Name,
@@ -228,7 +228,7 @@ func (s *UserService) UpdateUser(ctx context.Context, user *model.User) (*dto.Us
 		Email:      updatedUser.Email,
 		RoleID:     updatedUser.RoleID,
 		PositionID: updatedUser.PositionID,
-		Image:      helpers.GetEnv("AWS_S3_URL", "") + updatedUser.File.FilePath,
+		Image:      config.GetEnv("AWS_S3_URL", "") + updatedUser.File.FilePath,
 		Role: dto.Role{
 			ID:   updatedUser.Role.ID,
 			Name: updatedUser.Role.Name,
@@ -270,7 +270,7 @@ func (s *UserService) GetMe(ctx context.Context, id int) (*dto.UserResponse, err
 		Email:      user.Email,
 		RoleID:     user.RoleID,
 		PositionID: user.PositionID,
-		Image:      helpers.GetEnv("AWS_S3_URL", "") + user.File.FilePath,
+		Image:      config.GetEnv("AWS_S3_URL", "") + user.File.FilePath,
 		Role: dto.Role{
 			ID:   user.Role.ID,
 			Name: user.Role.Name,
@@ -299,7 +299,7 @@ func (s *UserService) GetApproverReviewerUsers(ctx context.Context) ([]*dto.User
 			Email:      user.Email,
 			RoleID:     user.RoleID,
 			PositionID: user.PositionID,
-			Image:      helpers.GetEnv("AWS_S3_URL", "") + user.File.FilePath,
+			Image:      config.GetEnv("AWS_S3_URL", "") + user.File.FilePath,
 			Role: dto.Role{
 				ID:   user.Role.ID,
 				Name: user.Role.Name,
@@ -337,7 +337,7 @@ func (s *UserService) UpdateUserProfile(ctx context.Context, user *dto.UpdatePro
 		Email:      updatedUser.Email,
 		RoleID:     updatedUser.RoleID,
 		PositionID: updatedUser.PositionID,
-		Image:      helpers.GetEnv("AWS_S3_URL", "") + updatedUser.File.FilePath,
+		Image:      config.GetEnv("AWS_S3_URL", "") + updatedUser.File.FilePath,
 	}
 
 	return response, nil
@@ -363,7 +363,7 @@ func (s *UserService) RefreshToken(ctx context.Context, refreshToken string) (*d
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
-		return []byte(helpers.GetEnv("JWT_REFRESH_TOKEN_SECRET", "secret")), nil
+		return []byte(config.GetEnv("JWT_REFRESH_TOKEN_SECRET", "secret")), nil
 	})
 	if err != nil {
 		return response, err
@@ -376,7 +376,7 @@ func (s *UserService) RefreshToken(ctx context.Context, refreshToken string) (*d
 	}
 
 	// Create a new access token
-	accessTokenTime := helpers.GetEnv("JWT_ACCESS_TOKEN_EXPIRES", "3600")
+	accessTokenTime := config.GetEnv("JWT_ACCESS_TOKEN_EXPIRES", "3600")
 	accessTokenTimeInt, err := strconv.Atoi(accessTokenTime)
 	if err != nil {
 		return response, err
@@ -394,7 +394,7 @@ func (s *UserService) RefreshToken(ctx context.Context, refreshToken string) (*d
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, newClaims)
-	t, err := token.SignedString([]byte(helpers.GetEnv("JWT_ACCESS_TOKEN_SECRET", "secret")))
+	t, err := token.SignedString([]byte(config.GetEnv("JWT_ACCESS_TOKEN_SECRET", "secret")))
 	if err != nil {
 		return response, err
 	}
@@ -404,7 +404,7 @@ func (s *UserService) RefreshToken(ctx context.Context, refreshToken string) (*d
 	response.Name = user.Name
 	response.Role = user.Role.Name
 	response.Position = user.Position.Name
-	response.Image = helpers.GetEnv("AWS_S3_URL", "") + user.File.FilePath
+	response.Image = config.GetEnv("AWS_S3_URL", "") + user.File.FilePath
 	response.Token = t
 	response.RefreshToken = refreshTokenData.Token
 
