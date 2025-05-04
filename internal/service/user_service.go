@@ -146,7 +146,8 @@ func (s *UserService) GetAllUsers(ctx context.Context) ([]*dto.UserResponse, err
 
 // CreateUser creates a new user
 func (s *UserService) CreateUser(ctx context.Context, user *model.User) (*dto.UserResponse, error) {
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+	defaultPassword := "jagratama"
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(defaultPassword), bcrypt.DefaultCost)
 	if err != nil {
 		return nil, err
 	}
