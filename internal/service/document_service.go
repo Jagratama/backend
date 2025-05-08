@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"jagratama-backend/internal/config"
 	"jagratama-backend/internal/dto"
@@ -9,6 +10,8 @@ import (
 	"jagratama-backend/internal/model"
 	"jagratama-backend/internal/repository"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 type DocumentService struct {
@@ -209,8 +212,8 @@ func (s *DocumentService) GetDocumentProgress(ctx context.Context, slug string, 
 
 	var response []*dto.ApprovalDocumentResponse
 	for _, approvalRequest := range approvalRequests {
-		approvalFilePath := config.GetEnv("AWS_S3_URL", "") + approvalRequest.FilePath
-		if approvalRequest.FilePath == "" {
+		approvalFilePath := config.GetEnv("AWS_S3_URL", "") + approvalRequest.File.FilePath
+		if approvalRequest.FileID == nil {
 			approvalFilePath = ""
 		}
 
@@ -218,7 +221,7 @@ func (s *DocumentService) GetDocumentProgress(ctx context.Context, slug string, 
 			ID:         approvalRequest.ID,
 			Note:       approvalRequest.Note,
 			Status:     approvalRequest.Status,
-			FilePath:   approvalFilePath,
+			File:       approvalFilePath,
 			ResolvedAt: approvalRequest.ResolvedAt,
 			User: dto.UserDocumentResponse{
 				ID:    approvalRequest.User.ID,
@@ -269,6 +272,12 @@ func (s *DocumentService) ApprovalAction(ctx context.Context, slug string, userI
 			approvalData.Status = approvalRequest.Status
 			approvalData.Note = approvalRequest.Note
 			approvalData.ResolvedAt = time.Now()
+			if approvalRequest.FileID != 0 {
+				fileID := uint(approvalRequest.FileID)
+				approvalData.FileID = &fileID
+			} else {
+				approvalData.FileID = nil
+			}
 
 			break
 		}
@@ -288,8 +297,11 @@ func (s *DocumentService) ApprovalAction(ctx context.Context, slug string, userI
 		return err
 	}
 
-	documentLastStatus := approvalData.Status
-	if len(unApprovedApprovals) == 0 && approvalData.Status == dto.StatusApprove {
+	documentLastStatus := dto.StatusPending
+
+	if approvalData.Status == dto.StatusReject {
+		documentLastStatus = dto.StatusReject
+	} else if len(unApprovedApprovals) == 0 && approvalData.Status == dto.StatusApprove {
 		documentLastStatus = dto.StatusApprove
 	}
 
@@ -412,4 +424,29 @@ func (s *DocumentService) GetCountAllMyDocuments(ctx context.Context, userID int
 		TotalApproved: int(countApprovedDocuments),
 	}
 	return response, nil
+}
+
+func (s *DocumentService) GetDocumentApprovalReviewDetail(ctx context.Context, slug string, userID int) (*dto.ApprovalDocumentDetailResponse, error) {
+	document, err := s.documentRepository.GetDocumentBySlug(ctx, slug)
+	if err != nil {
+		return nil, err
+	}
+
+	approvalRequests, err := s.approvalRequestRepository.GetLatestApprovalRequestApproved(ctx, int(document.ID))
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, err
+	}
+
+	// no one approved, get file from document
+	if approvalRequests == nil || approvalRequests.FileID == nil {
+		return &dto.ApprovalDocumentDetailResponse{
+			Title: document.Title,
+			File:  config.GetEnv("AWS_S3_URL", "") + document.File.FilePath,
+		}, nil
+	}
+
+	return &dto.ApprovalDocumentDetailResponse{
+		Title: document.Title,
+		File:  config.GetEnv("AWS_S3_URL", "") + approvalRequests.File.FilePath,
+	}, nil
 }

@@ -18,7 +18,7 @@ func NewFileRepository(db *gorm.DB) *FileRepository {
 }
 
 func (r *FileRepository) Create(ctx context.Context, file *model.File) (*model.File, error) {
-	if err := r.db.WithContext(ctx).Create(file).Error; err != nil {
+	if err := r.db.WithContext(ctx).Create(&file).Error; err != nil {
 		return nil, err
 	}
 	return file, nil
