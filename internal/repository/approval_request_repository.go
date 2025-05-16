@@ -29,6 +29,7 @@ func (r *ApprovalRequestRepository) GetApprovalRequestsByDocumentID(ctx context.
 		Where("document_id = ?", documentID).
 		Preload("User").
 		Preload("User.File").
+		Preload("File").
 		Order("id ASC").
 		Find(&approvalRequests).Error
 

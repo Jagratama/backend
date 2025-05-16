@@ -253,6 +253,21 @@ func (s *DocumentService) ApprovalAction(ctx context.Context, slug string, userI
 		return err
 	}
 
+	user, err := s.userRepository.GetUserByID(ctx, userID)
+	if err != nil {
+		return err
+	}
+
+	requiresSignature := false
+	if len(user.Position.RequiresSignatureByCategoryType) > 0 {
+		for _, categoryType := range user.Position.RequiresSignatureByCategoryType {
+			if categoryType == document.Category.Type {
+				requiresSignature = true
+				break
+			}
+		}
+	}
+
 	approvalData := &model.ApprovalRequest{}
 	found := false
 
@@ -273,10 +288,23 @@ func (s *DocumentService) ApprovalAction(ctx context.Context, slug string, userI
 			approvalData.Note = approvalRequest.Note
 			approvalData.ResolvedAt = time.Now()
 			if approvalRequest.FileID != 0 {
-				fileID := uint(approvalRequest.FileID)
-				approvalData.FileID = &fileID
+				if requiresSignature {
+					fileID := uint(approvalRequest.FileID)
+					approvalData.FileID = &fileID
+				} else {
+					// user does not require signature, use file id from before approver
+					if i > 0 {
+						approvalData.FileID = userApprovals[i-1].FileID
+					} else {
+						approvalData.FileID = &document.FileID
+					}
+				}
 			} else {
-				approvalData.FileID = nil
+				if i > 0 {
+					approvalData.FileID = userApprovals[i-1].FileID
+				} else {
+					approvalData.FileID = &document.FileID
+				}
 			}
 
 			break
@@ -437,16 +465,39 @@ func (s *DocumentService) GetDocumentApprovalReviewDetail(ctx context.Context, s
 		return nil, err
 	}
 
-	// no one approved, get file from document
-	if approvalRequests == nil || approvalRequests.FileID == nil {
-		return &dto.ApprovalDocumentDetailResponse{
-			Title: document.Title,
-			File:  config.GetEnv("AWS_S3_URL", "") + document.File.FilePath,
-		}, nil
+	user, err := s.userRepository.GetUserByID(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	var filePath string
+	if approvalRequests != nil && approvalRequests.FileID != nil {
+		// approved by someone, get file from before approver
+		filePath = approvalRequests.File.FilePath
+	} else {
+		// no one approved, get file from document
+		filePath = document.File.FilePath
+	}
+
+	requiresSignature := false
+	if len(user.Position.RequiresSignatureByCategoryType) > 0 {
+		for _, categoryType := range user.Position.RequiresSignatureByCategoryType {
+			if categoryType == document.Category.Type {
+				requiresSignature = true
+				break
+			}
+		}
+	}
+
+	IsReviewer := false
+	if user.Role.Name == "reviewer" {
+		IsReviewer = true
 	}
 
 	return &dto.ApprovalDocumentDetailResponse{
-		Title: document.Title,
-		File:  config.GetEnv("AWS_S3_URL", "") + approvalRequests.File.FilePath,
+		Title:             document.Title,
+		File:              config.GetEnv("AWS_S3_URL", "") + filePath,
+		RequiresSignature: requiresSignature,
+		IsReviewer:        IsReviewer,
 	}, nil
 }

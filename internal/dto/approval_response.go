@@ -12,6 +12,8 @@ type ApprovalDocumentResponse struct {
 }
 
 type ApprovalDocumentDetailResponse struct {
-	Title string `json:"title"`
-	File  string `json:"file"`
+	Title             string `json:"title"`
+	File              string `json:"file"`
+	RequiresSignature bool   `json:"requires_signature"`
+	IsReviewer        bool   `json:"is_reviewer"`
 }

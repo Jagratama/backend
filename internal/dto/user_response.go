@@ -19,9 +19,8 @@ type Role struct {
 }
 
 type Position struct {
-	ID                 uint   `json:"id"`
-	Name               string `json:"name"`
-	RequiresSignatures bool   `json:"requires_signatures"`
+	ID   uint   `json:"id"`
+	Name string `json:"name"`
 }
 
 type UserImage struct {

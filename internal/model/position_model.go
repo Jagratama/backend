@@ -1,11 +1,15 @@
 package model
 
-import "time"
+import (
+	"time"
+
+	"github.com/lib/pq"
+)
 
 type Position struct {
-	ID                 uint      `json:"id" gorm:"primaryKey"`
-	Name               string    `json:"name"`
-	RequiresSignatures bool      `json:"requires_signatures"`
-	CreatedAt          time.Time `json:"created_at"`
-	UpdatedAt          time.Time `json:"updated_at"`
+	ID                              uint           `json:"id" gorm:"primaryKey"`
+	Name                            string         `json:"name"`
+	RequiresSignatureByCategoryType pq.StringArray `json:"requires_signature_by_category_type" gorm:"type:text[]"`
+	CreatedAt                       time.Time      `json:"created_at"`
+	UpdatedAt                       time.Time      `json:"updated_at"`
 }

@@ -134,9 +134,8 @@ func (s *UserService) GetAllUsers(ctx context.Context) ([]*dto.UserResponse, err
 				Name: user.Role.Name,
 			},
 			Position: dto.Position{
-				ID:                 user.Position.ID,
-				Name:               user.Position.Name,
-				RequiresSignatures: user.Position.RequiresSignatures,
+				ID:   user.Position.ID,
+				Name: user.Position.Name,
 			},
 		})
 	}
@@ -171,9 +170,8 @@ func (s *UserService) CreateUser(ctx context.Context, user *model.User) (*dto.Us
 			Name: newUser.Role.Name,
 		},
 		Position: dto.Position{
-			ID:                 newUser.Position.ID,
-			Name:               newUser.Position.Name,
-			RequiresSignatures: newUser.Position.RequiresSignatures,
+			ID:   newUser.Position.ID,
+			Name: newUser.Position.Name,
 		},
 	}
 
@@ -198,9 +196,8 @@ func (s *UserService) GetUserByID(ctx context.Context, id int) (*dto.UserRespons
 			Name: user.Role.Name,
 		},
 		Position: dto.Position{
-			ID:                 user.Position.ID,
-			Name:               user.Position.Name,
-			RequiresSignatures: user.Position.RequiresSignatures,
+			ID:   user.Position.ID,
+			Name: user.Position.Name,
 		},
 	}
 
@@ -234,9 +231,8 @@ func (s *UserService) UpdateUser(ctx context.Context, user *model.User) (*dto.Us
 			Name: updatedUser.Role.Name,
 		},
 		Position: dto.Position{
-			ID:                 updatedUser.Position.ID,
-			Name:               updatedUser.Position.Name,
-			RequiresSignatures: updatedUser.Position.RequiresSignatures,
+			ID:   updatedUser.Position.ID,
+			Name: updatedUser.Position.Name,
 		},
 	}
 
@@ -276,9 +272,8 @@ func (s *UserService) GetMe(ctx context.Context, id int) (*dto.UserResponse, err
 			Name: user.Role.Name,
 		},
 		Position: dto.Position{
-			ID:                 user.Position.ID,
-			Name:               user.Position.Name,
-			RequiresSignatures: user.Position.RequiresSignatures,
+			ID:   user.Position.ID,
+			Name: user.Position.Name,
 		},
 	}
 	return response, nil
@@ -305,9 +300,8 @@ func (s *UserService) GetApproverReviewerUsers(ctx context.Context) ([]*dto.User
 				Name: user.Role.Name,
 			},
 			Position: dto.Position{
-				ID:                 user.Position.ID,
-				Name:               user.Position.Name,
-				RequiresSignatures: user.Position.RequiresSignatures,
+				ID:   user.Position.ID,
+				Name: user.Position.Name,
 			},
 		})
 	}
