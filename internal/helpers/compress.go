@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"image"
 	"image/jpeg"
+	_ "image/png"
 	"mime/multipart"
 )
 
