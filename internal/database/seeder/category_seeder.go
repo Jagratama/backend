@@ -13,15 +13,13 @@ func (s CategorySeeder) Run(db *gorm.DB) error {
 	categories := []model.Category{
 		{
 			ID:   uint(1),
-			Name: "Cat 1",
+			Name: "KAK/ LPJ",
+			Type: "kak/lpj",
 		},
 		{
 			ID:   uint(2),
-			Name: "Cat 2",
-		},
-		{
-			ID:   uint(3),
-			Name: "Cat 3",
+			Name: "Persuratan",
+			Type: "persuratan",
 		},
 	}
 
