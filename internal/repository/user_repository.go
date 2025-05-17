@@ -63,7 +63,7 @@ func (r *UserRepository) CreateUser(ctx context.Context, user *model.User) (*mod
 }
 
 func (r *UserRepository) UpdateUser(ctx context.Context, user *model.User) (*model.User, error) {
-	err := r.db.WithContext(ctx).Save(&user).Error
+	err := r.db.WithContext(ctx).Model(model.User{}).Where("id = ?", user.ID).Updates(&user).Error
 	if err != nil {
 		return nil, err
 	}

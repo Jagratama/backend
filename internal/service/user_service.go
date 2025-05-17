@@ -318,6 +318,9 @@ func (s *UserService) UpdateUserProfile(ctx context.Context, user *dto.UpdatePro
 
 	// Update the user fields
 	existingUser.Name = user.Name
+	if user.ImageID != nil {
+		existingUser.ImageID = *user.ImageID
+	}
 
 	// Save the updated user to the database
 	updatedUser, err := s.userRepository.UpdateUser(ctx, existingUser)
