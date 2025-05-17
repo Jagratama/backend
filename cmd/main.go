@@ -118,7 +118,7 @@ func main() {
 
 		v1WithAuth.GET("/documents", documentHandler.GetAllDocuments)
 		v1WithAuth.GET("/documents/:slug", documentHandler.GetDocumentBySlug)
-		v1WithAuth.POST("/documents", documentHandler.CreateDocument, customMiddleware.RoleCheck([]string{"requester", "admin"}))
+		v1WithAuth.POST("/documents", documentHandler.CreateDocument, customMiddleware.RoleCheck([]string{"requester"}))
 		v1WithAuth.PUT("/documents/:slug", documentHandler.UpdateDocument)
 		v1WithAuth.DELETE("/documents/:slug", documentHandler.DeleteDocument)
 
