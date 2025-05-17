@@ -82,6 +82,15 @@ func (r *UserRepository) DeleteUser(ctx context.Context, id int) (*model.User, e
 	return &user, nil
 }
 
+func (r *UserRepository) CountAllUsers(ctx context.Context) (int64, error) {
+	var count int64
+	err := r.db.WithContext(ctx).Model(&model.User{}).Count(&count).Error
+	if err != nil {
+		return 0, err
+	}
+	return count, nil
+}
+
 func (r *UserRepository) GetApproverReviewerUsers(ctx context.Context) ([]*model.User, error) {
 	var users []*model.User
 	err := r.db.WithContext(ctx).

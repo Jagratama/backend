@@ -425,24 +425,99 @@ func (s *DocumentService) GetDocumentApprovalHistory(ctx context.Context, userID
 
 func (s *DocumentService) GetCountAllMyDocuments(ctx context.Context, userID int) (dto.DocumentCountResponse, error) {
 	response := dto.DocumentCountResponse{}
-	countAllDocuments, err := s.documentRepository.CountAllMyDocuments(ctx, userID)
+
+	user, err := s.userRepository.GetUserByID(ctx, userID)
 	if err != nil {
 		return response, err
 	}
 
-	countPendingDocuments, err := s.documentRepository.CountPendingDocuments(ctx, userID)
-	if err != nil {
-		return response, err
+	countAllDocuments := int64(0)
+	countPendingDocuments := int64(0)
+	countRejectedDocuments := int64(0)
+	countApprovedDocuments := int64(0)
+	countUsers := int64(0)
+
+	if user.Role.Name == "requester" {
+		countAllDocuments, err = s.documentRepository.CountAllMyDocuments(ctx, userID)
+		if err != nil {
+			return response, err
+		}
+
+		countPendingDocuments, err = s.documentRepository.CountPendingDocuments(ctx, userID)
+		if err != nil {
+			return response, err
+		}
+
+		countRejectedDocuments, err = s.documentRepository.CountRejectedDocuments(ctx, userID)
+		if err != nil {
+			return response, err
+		}
+
+		countApprovedDocuments, err = s.documentRepository.CountApprovedDocuments(ctx, userID)
+		if err != nil {
+			return response, err
+		}
 	}
 
-	countRejectedDocuments, err := s.documentRepository.CountRejectedDocuments(ctx, userID)
-	if err != nil {
-		return response, err
+	if (user.Role.Name == "reviewer") || (user.Role.Name == "approver") {
+		myApprovalRequests, err := s.approvalRequestRepository.GetPendingApprovalRequest(ctx, userID)
+		if err != nil {
+			return response, err
+		}
+
+		for _, myApprovalRequest := range myApprovalRequests {
+			allApprovals, err := s.approvalRequestRepository.GetApprovalRequestsByDocumentID(ctx, int(myApprovalRequest.Document.ID))
+			if err != nil {
+				return response, err
+			}
+
+			for idx, approval := range allApprovals {
+				if approval.User.ID == uint(userID) {
+					if idx == 0 {
+						countPendingDocuments++
+					} else {
+						if allApprovals[idx-1].Status == "approved" {
+							countPendingDocuments++
+							break
+						}
+					}
+				}
+
+			}
+		}
+
+		countRejectedDocuments, err = s.approvalRequestRepository.CountApprovalDocumentsByStatus(ctx, userID, dto.StatusReject)
+		if err != nil {
+			return response, err
+		}
+
+		countApprovedDocuments, err = s.approvalRequestRepository.CountApprovalDocumentsByStatus(ctx, userID, dto.StatusApprove)
+		if err != nil {
+			return response, err
+		}
+
+		countAllDocuments = countPendingDocuments + countRejectedDocuments + countApprovedDocuments
 	}
 
-	countApprovedDocuments, err := s.documentRepository.CountApprovedDocuments(ctx, userID)
-	if err != nil {
-		return response, err
+	if user.Role.Name == "admin" {
+		countAllDocuments, err = s.documentRepository.CountAllDocuments(ctx)
+		if err != nil {
+			return response, err
+		}
+
+		countRejectedDocuments, err = s.documentRepository.CountAllDocumentsByStatus(ctx, dto.StatusReject)
+		if err != nil {
+			return response, err
+		}
+		countApprovedDocuments, err = s.documentRepository.CountAllDocumentsByStatus(ctx, dto.StatusApprove)
+		if err != nil {
+			return response, err
+		}
+
+		countUsers, err = s.userRepository.CountAllUsers(ctx)
+		if err != nil {
+			return response, err
+		}
 	}
 
 	response = dto.DocumentCountResponse{
@@ -450,6 +525,7 @@ func (s *DocumentService) GetCountAllMyDocuments(ctx context.Context, userID int
 		TotalRejected: int(countRejectedDocuments),
 		TotalPending:  int(countPendingDocuments),
 		TotalApproved: int(countApprovedDocuments),
+		TotalUsers:    int(countUsers),
 	}
 	return response, nil
 }

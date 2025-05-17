@@ -42,4 +42,5 @@ type DocumentCountResponse struct {
 	TotalRejected int `json:"total_rejected"`
 	TotalPending  int `json:"total_pending"`
 	TotalApproved int `json:"total_approved"`
+	TotalUsers    int `json:"total_users"`
 }

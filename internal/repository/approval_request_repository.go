@@ -93,3 +93,17 @@ func (r *ApprovalRequestRepository) GetLatestApprovalRequestApproved(ctx context
 
 	return &approvalRequest, nil
 }
+
+func (r *ApprovalRequestRepository) CountApprovalDocumentsByStatus(ctx context.Context, userID int, status string) (int64, error) {
+	var count int64
+
+	err := r.db.WithContext(ctx).Model(&model.ApprovalRequest{}).
+		Where("user_id = ? AND status = ?", userID, status).
+		Count(&count).Error
+
+	if err != nil {
+		return 0, err
+	}
+
+	return count, nil
+}
