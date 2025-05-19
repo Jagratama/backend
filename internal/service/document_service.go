@@ -43,6 +43,8 @@ func (s *DocumentService) GetAllDocuments(ctx context.Context, userID int) ([]*d
 			File:       config.GetEnv("AWS_S3_URL", "") + document.File.FilePath,
 			LastStatus: document.LastStatus,
 			ApprovedAt: document.ApprovedAt,
+			CreatedAt:  document.CreatedAt,
+			UpdatedAt:  document.UpdatedAt,
 			User: dto.UserDocumentResponse{
 				ID:    document.User.ID,
 				Name:  document.User.Name,
@@ -402,11 +404,13 @@ func (s *DocumentService) GetDocumentApprovalHistory(ctx context.Context, userID
 	response := make([]*dto.DocumentRequestResponse, 0)
 	for _, approvalRequest := range approvalRequests {
 		response = append(response, &dto.DocumentRequestResponse{
-			ID:     approvalRequest.Document.ID,
-			Title:  approvalRequest.Document.Title,
-			Slug:   approvalRequest.Document.Slug,
-			File:   config.GetEnv("AWS_S3_URL", "") + approvalRequest.Document.File.FilePath,
-			Status: approvalRequest.Status,
+			ID:        approvalRequest.Document.ID,
+			Title:     approvalRequest.Document.Title,
+			Slug:      approvalRequest.Document.Slug,
+			File:      config.GetEnv("AWS_S3_URL", "") + approvalRequest.Document.File.FilePath,
+			Status:    approvalRequest.Status,
+			CreatedAt: approvalRequest.CreatedAt,
+			UpdatedAt: approvalRequest.UpdatedAt,
 			User: dto.UserDocumentResponse{
 				ID:    approvalRequest.Document.User.ID,
 				Name:  approvalRequest.Document.User.Name,

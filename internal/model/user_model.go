@@ -10,8 +10,8 @@ type User struct {
 	Name       string    `json:"name" gorm:"size:100;not null"`
 	Email      string    `json:"email" gorm:"size:100;uniqueIndex;not null"`
 	Password   string    `json:"password" gorm:"not null"`
-	CreatedAt  time.Time `json:"created_at"`
-	UpdatedAt  time.Time `json:"updated_at"`
+	CreatedAt  time.Time `json:"created_at" gorm:"type:timestamp;default:now()"`
+	UpdatedAt  time.Time `json:"updated_at" gorm:"type:timestamp;default:now()"`
 
 	Role     Role     `json:"role" gorm:"foreignKey:RoleID"`
 	Position Position `json:"position" gorm:"foreignKey:PositionID"`

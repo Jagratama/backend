@@ -5,6 +5,6 @@ import "time"
 type Role struct {
 	ID        uint      `json:"id" gorm:"primaryKey"`
 	Name      string    `json:"name"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	CreatedAt time.Time `json:"created_at" gorm:"type:timestamp;default:now()"`
+	UpdatedAt time.Time `json:"updated_at" gorm:"type:timestamp;default:now()"`
 }

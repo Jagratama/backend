@@ -10,8 +10,8 @@ type ApprovalRequest struct {
 	Note       *string   `json:"note"`
 	Status     string    `json:"status" gorm:"type:text;check:status IN ('pending','approved','rejected');default:'pending';not null"`
 	ResolvedAt time.Time `json:"resolved_at"`
-	CreatedAt  time.Time `json:"created_at"`
-	UpdatedAt  time.Time `json:"updated_at"`
+	CreatedAt  time.Time `json:"created_at" gorm:"type:timestamp;default:now()"`
+	UpdatedAt  time.Time `json:"updated_at" gorm:"type:timestamp;default:now()"`
 
 	Document Document `json:"document" gorm:"foreignKey:DocumentID"`
 	User     User     `json:"user" gorm:"foreignKey:UserID"`

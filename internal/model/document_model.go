@@ -13,8 +13,8 @@ type Document struct {
 	Description     string     `json:"description"`
 	LastStatus      string     `json:"last_status" gorm:"type:text;check:last_status IN ('pending','approved','rejected');default:'pending';not null"`
 	ApprovedAt      *time.Time `json:"approved_at" gorm:"default:null"`
-	CreatedAt       time.Time  `json:"created_at"`
-	UpdatedAt       time.Time  `json:"updated_at"`
+	CreatedAt       time.Time  `json:"created_at" gorm:"type:timestamp;default:now()"`
+	UpdatedAt       time.Time  `json:"updated_at" gorm:"type:timestamp;default:now()"`
 
 	User          User     `json:"user" gorm:"foreignKey:UserID"`
 	AddressedUser User     `json:"addressed_user" gorm:"foreignKey:AddressedUserID"`

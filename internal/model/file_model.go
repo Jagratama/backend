@@ -5,6 +5,6 @@ type File struct {
 	FileName    string `json:"file_name"`
 	FilePath    string `json:"file_path"`
 	ContentType string `json:"content_type"`
-	CreatedAt   string `json:"created_at"`
-	UpdatedAt   string `json:"updated_at"`
+	CreatedAt   string `json:"created_at" gorm:"type:timestamp;default:now()"`
+	UpdatedAt   string `json:"updated_at" gorm:"type:timestamp;default:now()"`
 }

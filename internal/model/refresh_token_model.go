@@ -8,6 +8,6 @@ type RefreshToken struct {
 	Token     string    `json:"token"`
 	UserAgent string    `json:"user_agent"`
 	ExpiredAt string    `json:"expired_at"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	CreatedAt time.Time `json:"created_at" gorm:"type:timestamp;default:now()"`
+	UpdatedAt time.Time `json:"updated_at" gorm:"type:timestamp;default:now()"`
 }
