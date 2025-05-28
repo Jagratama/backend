@@ -143,6 +143,7 @@ func (s *DocumentService) CreateDocument(ctx context.Context, documentRequest *d
 		Title:           documentRequest.Title,
 		Slug:            documentRequest.Slug,
 		Description:     documentRequest.Description,
+		Confirmed:       false,
 	}
 	newDocument, err := s.documentRepository.CreateDocument(ctx, document)
 	if err != nil {
@@ -580,4 +581,29 @@ func (s *DocumentService) GetDocumentApprovalReviewDetail(ctx context.Context, s
 		RequiresSignature: requiresSignature,
 		IsReviewer:        IsReviewer,
 	}, nil
+}
+
+func (s *DocumentService) ConfirmDocument(ctx context.Context, slug string, userID int, FileID int) error {
+	document, err := s.documentRepository.GetDocumentBySlug(ctx, slug)
+	if err != nil {
+		return err
+	}
+
+	if document.UserID != uint(userID) {
+		return fmt.Errorf("you are not authorized to confirm this document")
+	}
+
+	if document.Confirmed {
+		return fmt.Errorf("document already confirmed")
+	}
+
+	document.Confirmed = true
+	document.FileID = uint(FileID)
+
+	_, err = s.documentRepository.UpdateDocumentBySlug(ctx, document, slug, userID)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

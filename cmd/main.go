@@ -122,6 +122,7 @@ func main() {
 		v1WithAuth.PUT("/documents/:slug", documentHandler.UpdateDocument)
 		v1WithAuth.DELETE("/documents/:slug", documentHandler.DeleteDocument)
 
+		v1WithAuth.POST("/documents/:slug/confirm", documentHandler.ConfirmDocument)
 		v1WithAuth.GET("/documents/:slug/tracking", documentHandler.GetDocumentProgress)
 		v1WithAuth.POST("/documents/:slug/approval", documentHandler.ApprovalAction)
 

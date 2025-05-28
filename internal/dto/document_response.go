@@ -10,6 +10,7 @@ type DocumentResponse struct {
 	Title           string     `json:"title"`
 	Slug            string     `json:"slug"`
 	Description     string     `json:"description"`
+	Confirmed       bool       `json:"confirmed"`
 	File            string     `json:"file"`
 	LastStatus      string     `json:"last_status"`
 	ApprovedAt      *time.Time `json:"approved_at"`

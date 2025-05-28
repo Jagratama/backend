@@ -11,6 +11,7 @@ type Document struct {
 	Title           string     `json:"title"`
 	Slug            string     `json:"slug"`
 	Description     string     `json:"description"`
+	Confirmed       bool       `json:"confirmed" gorm:"default:false;not null"`
 	LastStatus      string     `json:"last_status" gorm:"type:text;check:last_status IN ('pending','approved','rejected');default:'pending';not null"`
 	ApprovedAt      *time.Time `json:"approved_at" gorm:"default:null"`
 	CreatedAt       time.Time  `json:"created_at" gorm:"type:timestamp;default:now()"`
