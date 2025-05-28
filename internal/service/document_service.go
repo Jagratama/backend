@@ -607,3 +607,32 @@ func (s *DocumentService) ConfirmDocument(ctx context.Context, slug string, user
 
 	return nil
 }
+
+func (s *DocumentService) ReuploadDocument(ctx context.Context, slug string, userID int, fileID int) error {
+	document, err := s.documentRepository.GetDocumentBySlug(ctx, slug)
+	if err != nil {
+		return err
+	}
+
+	if document.UserID != uint(userID) {
+		return fmt.Errorf("you are not authorized to reupload this document")
+	}
+	document.FileID = uint(fileID)
+
+	_, err = s.documentRepository.UpdateDocumentBySlug(ctx, document, slug, userID)
+	if err != nil {
+		return err
+	}
+
+	approvalRequestsRejected, err := s.approvalRequestRepository.GetApprovalRequestDocumentsByDocumentIDAndStatus(ctx, int(document.ID), dto.StatusReject)
+	if err != nil {
+		return err
+	}
+
+	for _, approvalRequest := range approvalRequestsRejected {
+		approvalRequest.Status = dto.StatusPending
+		s.approvalRequestRepository.UpdateApprovalRequest(ctx, int(document.ID), int(approvalRequest.UserID), approvalRequest)
+	}
+
+	return nil
+}

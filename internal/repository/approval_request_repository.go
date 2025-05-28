@@ -107,3 +107,14 @@ func (r *ApprovalRequestRepository) CountApprovalDocumentsByStatus(ctx context.C
 
 	return count, nil
 }
+
+func (r *ApprovalRequestRepository) GetApprovalRequestDocumentsByDocumentIDAndStatus(ctx context.Context, documentID int, status string) ([]*model.ApprovalRequest, error) {
+	var approvalRequests []*model.ApprovalRequest
+
+	err := r.db.WithContext(ctx).Where("document_id = ? AND status = ?", documentID, status).Find(&approvalRequests).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return approvalRequests, nil
+}

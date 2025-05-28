@@ -224,3 +224,27 @@ func (h *DocumentHandler) ConfirmDocument(c echo.Context) error {
 
 	return helpers.SendResponseHTTP(c, http.StatusOK, "Successfully to confirm document", nil)
 }
+
+func (h *DocumentHandler) ReuploadDocument(c echo.Context) error {
+	ctx := c.Request().Context()
+	slug := c.Param("slug")
+	requestData := struct {
+		FileID int `json:"file_id"`
+	}{}
+
+	if err := c.Bind(&requestData); err != nil {
+		return helpers.SendResponseHTTP(c, http.StatusBadRequest, "Invalid request body", err.Error())
+	}
+
+	userID, ok := c.Get("userID").(int)
+	if !ok {
+		return helpers.SendResponseHTTP(c, http.StatusForbidden, "Unauthorized", nil)
+	}
+
+	err := h.documentService.ReuploadDocument(ctx, slug, userID, requestData.FileID)
+	if err != nil {
+		return helpers.SendResponseHTTP(c, http.StatusInternalServerError, "Failed to reupload document", err.Error())
+	}
+
+	return helpers.SendResponseHTTP(c, http.StatusOK, "Successfully to reupload document", nil)
+}
