@@ -75,7 +75,7 @@ func (r *ApprovalRequestRepository) GetPendingApprovalRequest(ctx context.Contex
 func (r *ApprovalRequestRepository) GetUnApprovedApprovalByDocumentID(ctx context.Context, documentID int) ([]*model.ApprovalRequest, error) {
 	var approvalRequests []*model.ApprovalRequest
 
-	err := r.db.WithContext(ctx).Where("document_id = ? AND status != ?", documentID, "approved").Find(&approvalRequests).Error
+	err := r.db.WithContext(ctx).Where("document_id = ? AND status != ?", documentID, "approved").Preload("User").Find(&approvalRequests).Error
 	if err != nil {
 		return nil, err
 	}
@@ -117,4 +117,15 @@ func (r *ApprovalRequestRepository) GetApprovalRequestDocumentsByDocumentIDAndSt
 	}
 
 	return approvalRequests, nil
+}
+
+func (r *ApprovalRequestRepository) GetFirstApprovalRequestByDocumentID(ctx context.Context, documentID int) (*model.ApprovalRequest, error) {
+	var approvalRequest model.ApprovalRequest
+
+	err := r.db.WithContext(ctx).Where("document_id = ?", documentID).Order("id ASC").Preload("User").First(&approvalRequest).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return &approvalRequest, nil
 }

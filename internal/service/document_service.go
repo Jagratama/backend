@@ -341,6 +341,19 @@ func (s *DocumentService) ApprovalAction(ctx context.Context, slug string, userI
 		return err
 	}
 
+	// If the document is approved, send email to the next approver
+	if approvalData.Status == dto.StatusApprove {
+		if len(unApprovedApprovals) > 0 {
+			nextApprover := unApprovedApprovals[0]
+			helpers.SendRequestDocumentApproveMail(
+				nextApprover.User.Email,
+				nextApprover.User.Name,
+				document.User.Name,
+				document,
+			)
+		}
+	}
+
 	return nil
 }
 
@@ -604,6 +617,18 @@ func (s *DocumentService) ConfirmDocument(ctx context.Context, slug string, user
 	if err != nil {
 		return err
 	}
+
+	approver, err := s.approvalRequestRepository.GetFirstApprovalRequestByDocumentID(ctx, int(document.ID))
+	if err != nil {
+		return err
+	}
+
+	helpers.SendRequestDocumentApproveMail(
+		approver.User.Email,
+		approver.User.Name,
+		document.User.Name,
+		document,
+	)
 
 	return nil
 }
