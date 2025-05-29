@@ -43,3 +43,18 @@ func (h *PositionHandler) GetPositionByID(c echo.Context) error {
 
 	return helpers.SendResponseHTTP(c, http.StatusOK, "Successfully to get position", position)
 }
+
+func (h *PositionHandler) GetPositionsRequiredByCategoryID(c echo.Context) error {
+	ctx := c.Request().Context()
+	categoryID, err := strconv.Atoi(c.Param("categoryID"))
+	if err != nil {
+		return helpers.SendResponseHTTP(c, http.StatusBadRequest, "Invalid category ID", err.Error())
+	}
+
+	positions, err := h.positionService.GetPositionsRequiredByCategoryID(ctx, categoryID)
+	if err != nil {
+		return helpers.SendResponseHTTP(c, http.StatusInternalServerError, "Failed to get positions by category ID", err.Error())
+	}
+
+	return helpers.SendResponseHTTP(c, http.StatusOK, "Successfully to get positions by category ID", positions)
+}

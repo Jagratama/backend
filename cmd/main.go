@@ -67,8 +67,9 @@ func main() {
 	roleService := service.NewRoleService(*roleRepository)
 	roleHandler := handler.NewRoleHandler(*roleService)
 
+	positionCategoryRuleRepository := repository.NewPositionCategoryRuleRepository(db)
 	positionRepository := repository.NewPositionRepository(db)
-	positionService := service.NewPositionService(*positionRepository)
+	positionService := service.NewPositionService(*positionRepository, *positionCategoryRuleRepository)
 	positionHandler := handler.NewPositionHandler(*positionService)
 
 	categoryRepository := repository.NewCategoryRepository(db)
@@ -115,6 +116,7 @@ func main() {
 
 		v1WithAuth.GET("/positions", positionHandler.GetAllPositions)
 		v1WithAuth.GET("/positions/:id", positionHandler.GetPositionByID)
+		v1WithAuth.GET("/positions/rules-by-category/:categoryID", positionHandler.GetPositionsRequiredByCategoryID)
 
 		v1WithAuth.GET("/documents", documentHandler.GetAllDocuments)
 		v1WithAuth.GET("/documents/:slug", documentHandler.GetDocumentBySlug)

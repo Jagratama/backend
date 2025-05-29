@@ -7,12 +7,14 @@ import (
 )
 
 type PositionService struct {
-	positionRepository repository.PositionRepository
+	positionRepository   repository.PositionRepository
+	positionCategoryRule repository.PositionCategoryRuleRepository
 }
 
-func NewPositionService(positionRepository repository.PositionRepository) *PositionService {
+func NewPositionService(positionRepository repository.PositionRepository, positionCategoryRule repository.PositionCategoryRuleRepository) *PositionService {
 	return &PositionService{
-		positionRepository: positionRepository,
+		positionRepository:   positionRepository,
+		positionCategoryRule: positionCategoryRule,
 	}
 }
 
@@ -30,4 +32,16 @@ func (s *PositionService) GetPositionByID(ctx context.Context, id int) (*model.P
 		return nil, err
 	}
 	return position, nil
+}
+
+func (s *PositionService) GetPositionsRequiredByCategoryID(ctx context.Context, categoryID int) ([]*model.Position, error) {
+	var positions []*model.Position
+	rules, err := s.positionCategoryRule.GetPositionsRuleByCategoryID(uint(categoryID))
+	if err != nil {
+		return []*model.Position{}, err
+	}
+	for _, rule := range rules {
+		positions = append(positions, &rule.Position)
+	}
+	return positions, nil
 }
