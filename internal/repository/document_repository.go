@@ -22,14 +22,14 @@ func NewDocumentRepository(db *gorm.DB) *DocumentRepository {
 func (r *DocumentRepository) GetAllDocuments(ctx context.Context, userID int) ([]*model.Document, error) {
 	var documents []*model.Document
 
-	err := r.db.WithContext(ctx).Where("user_id = ?", userID).Where("confirmed = ?", true).Preload("File").Preload("User").Preload("AddressedUser").Preload("User.File").Preload("Category").Find(&documents).Error
+	err := r.db.WithContext(ctx).Where("user_id = ?", userID).Where("confirmed = ?", true).Preload("File").Preload("User").Preload("User.File").Preload("Category").Preload("AddressedUser").Preload("AddressedUser.File").Find(&documents).Error
 	return documents, err
 }
 
 func (r *DocumentRepository) GetDocumentByID(ctx context.Context, id int) (*model.Document, error) {
 	var document *model.Document
 
-	err := r.db.WithContext(ctx).Where("id = ?", id).Where("confirmed = ?", true).Preload("File").Preload("User").Preload("AddressedUser").Preload("User.File").Preload("Category").First(&document).Error
+	err := r.db.WithContext(ctx).Where("id = ?", id).Where("confirmed = ?", true).Preload("File").Preload("User").Preload("User.File").Preload("Category").Preload("AddressedUser").Preload("AddressedUser.File").First(&document).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			// Handle not found case specifically
@@ -44,7 +44,7 @@ func (r *DocumentRepository) GetDocumentByID(ctx context.Context, id int) (*mode
 func (r *DocumentRepository) GetDocumentBySlug(ctx context.Context, slug string) (*model.Document, error) {
 	var document model.Document
 
-	err := r.db.WithContext(ctx).Where("slug = ?", slug).Preload("File").Preload("User").Preload("AddressedUser").Preload("User.File").Preload("Category").First(&document).Error
+	err := r.db.WithContext(ctx).Where("slug = ?", slug).Preload("File").Preload("User").Preload("User.File").Preload("Category").Preload("AddressedUser").Preload("AddressedUser.File").First(&document).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			// Handle not found case specifically
