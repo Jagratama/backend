@@ -52,20 +52,52 @@ func (r *ApprovalRequestRepository) UpdateApprovalRequest(ctx context.Context, d
 	return nil
 }
 
-func (r *ApprovalRequestRepository) GetApprovalRequest(ctx context.Context, userID int) ([]*model.ApprovalRequest, error) {
+func (r *ApprovalRequestRepository) GetApprovalRequest(ctx context.Context, userID int, title, status string) ([]*model.ApprovalRequest, error) {
 	var approvalRequests []*model.ApprovalRequest
 
-	err := r.db.WithContext(ctx).Where("user_id = ? AND status != ?", userID, "pending").Preload("Document").Preload("Document.Category").Preload("Document.File").Preload("Document.User").Preload("Document.User.File").Find(&approvalRequests).Error
+	query := r.db.WithContext(ctx).
+		Joins("JOIN documents ON documents.id = approval_requests.document_id").
+		Where("approval_requests.user_id = ? AND approval_requests.status != ?", userID, "pending").
+		Preload("Document").
+		Preload("Document.Category").
+		Preload("Document.File").
+		Preload("Document.User").
+		Preload("Document.User.File")
+
+	if title != "" {
+		query = query.Where("documents.title ILIKE ?", "%"+title+"%")
+	}
+
+	if status != "" {
+		query = query.Where("documents.last_status = ?", status)
+	}
+
+	err := query.Find(&approvalRequests).Error
+
 	if err != nil {
 		return nil, err
 	}
 	return approvalRequests, nil
 }
 
-func (r *ApprovalRequestRepository) GetPendingApprovalRequest(ctx context.Context, userID int) ([]*model.ApprovalRequest, error) {
+func (r *ApprovalRequestRepository) GetPendingApprovalRequest(ctx context.Context, userID int, title string) ([]*model.ApprovalRequest, error) {
 	var approvalRequests []*model.ApprovalRequest
 
-	err := r.db.WithContext(ctx).Where("user_id = ? AND status = ?", userID, "pending").Preload("Document").Preload("Document.Category").Preload("Document.File").Preload("Document.User").Preload("Document.User.File").Find(&approvalRequests).Error
+	query := r.db.WithContext(ctx).
+		Joins("JOIN documents ON documents.id = approval_requests.document_id").
+		Where("approval_requests.user_id = ? AND approval_requests.status = ?", userID, "pending").
+		Preload("Document").
+		Preload("Document.Category").
+		Preload("Document.File").
+		Preload("Document.User").
+		Preload("Document.User.File")
+
+	if title != "" {
+		query = query.Where("documents.title ILIKE ?", "%"+title+"%")
+	}
+
+	err := query.Find(&approvalRequests).Error
+
 	if err != nil {
 		return nil, err
 	}

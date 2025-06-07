@@ -19,10 +19,29 @@ func NewDocumentRepository(db *gorm.DB) *DocumentRepository {
 	}
 }
 
-func (r *DocumentRepository) GetAllDocuments(ctx context.Context, userID int) ([]*model.Document, error) {
+func (r *DocumentRepository) GetAllDocuments(ctx context.Context, userID int, title, status string) ([]*model.Document, error) {
 	var documents []*model.Document
 
-	err := r.db.WithContext(ctx).Where("user_id = ? AND confirmed = ?", userID, true).Preload("File").Preload("User").Preload("User.File").Preload("Category").Preload("AddressedUser").Preload("AddressedUser.File").Find(&documents).Error
+	query := r.db.WithContext(ctx).
+		Where("user_id = ? AND confirmed = ?", userID, true)
+
+	if title != "" {
+		query = query.Where("title ILIKE ?", "%"+title+"%")
+	}
+
+	if status != "" {
+		query = query.Where("last_status = ?", status)
+	}
+
+	err := query.
+		Preload("File").
+		Preload("User").
+		Preload("User.File").
+		Preload("Category").
+		Preload("AddressedUser").
+		Preload("AddressedUser.File").
+		Find(&documents).Error
+
 	return documents, err
 }
 
@@ -111,19 +130,19 @@ func (r *DocumentRepository) CountAllMyDocuments(ctx context.Context, userID int
 
 func (r *DocumentRepository) CountPendingDocuments(ctx context.Context, userID int) (int64, error) {
 	var count int64
-	err := r.db.WithContext(ctx).Model(&model.Document{}).Where("user_id = ? AND confirmed = ? last_status = ?", userID, true, "pending").Count(&count).Error
+	err := r.db.WithContext(ctx).Model(&model.Document{}).Where("user_id = ? AND confirmed = ? AND last_status = ?", userID, true, "pending").Count(&count).Error
 	return count, err
 }
 
 func (r *DocumentRepository) CountRejectedDocuments(ctx context.Context, userID int) (int64, error) {
 	var count int64
-	err := r.db.WithContext(ctx).Model(&model.Document{}).Where("user_id = ? AND confirmed = ? last_status = ?", userID, true, "rejected").Count(&count).Error
+	err := r.db.WithContext(ctx).Model(&model.Document{}).Where("user_id = ? AND confirmed = ? AND last_status = ?", userID, true, "rejected").Count(&count).Error
 	return count, err
 }
 
 func (r *DocumentRepository) CountApprovedDocuments(ctx context.Context, userID int) (int64, error) {
 	var count int64
-	err := r.db.WithContext(ctx).Model(&model.Document{}).Where("user_id = ? AND confirmed = ? last_status = ?", userID, true, "approved").Count(&count).Error
+	err := r.db.WithContext(ctx).Model(&model.Document{}).Where("user_id = ? AND confirmed = ? AND last_status = ?", userID, true, "approved").Count(&count).Error
 	return count, err
 }
 

@@ -28,8 +28,8 @@ func NewDocumentService(documentRepository repository.DocumentRepository, approv
 	}
 }
 
-func (s *DocumentService) GetAllDocuments(ctx context.Context, userID int) ([]*dto.DocumentResponse, error) {
-	documents, err := s.documentRepository.GetAllDocuments(ctx, userID)
+func (s *DocumentService) GetAllDocuments(ctx context.Context, userID int, title, status string) ([]*dto.DocumentResponse, error) {
+	documents, err := s.documentRepository.GetAllDocuments(ctx, userID, title, status)
 	if err != nil {
 		return nil, err
 	}
@@ -357,8 +357,8 @@ func (s *DocumentService) ApprovalAction(ctx context.Context, slug string, userI
 	return nil
 }
 
-func (s *DocumentService) GetDocumentApprovalRequest(ctx context.Context, userID int) ([]*dto.DocumentRequestResponse, error) {
-	myApprovalRequests, err := s.approvalRequestRepository.GetPendingApprovalRequest(ctx, userID)
+func (s *DocumentService) GetDocumentApprovalRequest(ctx context.Context, userID int, title string) ([]*dto.DocumentRequestResponse, error) {
+	myApprovalRequests, err := s.approvalRequestRepository.GetPendingApprovalRequest(ctx, userID, title)
 	if err != nil {
 		return nil, err
 	}
@@ -409,8 +409,8 @@ func (s *DocumentService) GetDocumentApprovalRequest(ctx context.Context, userID
 	return response, nil
 }
 
-func (s *DocumentService) GetDocumentApprovalHistory(ctx context.Context, userID int) ([]*dto.DocumentRequestResponse, error) {
-	approvalRequests, err := s.approvalRequestRepository.GetApprovalRequest(ctx, userID)
+func (s *DocumentService) GetDocumentApprovalHistory(ctx context.Context, userID int, title, status string) ([]*dto.DocumentRequestResponse, error) {
+	approvalRequests, err := s.approvalRequestRepository.GetApprovalRequest(ctx, userID, title, status)
 	if err != nil {
 		return nil, err
 	}
@@ -478,7 +478,7 @@ func (s *DocumentService) GetCountAllMyDocuments(ctx context.Context, userID int
 	}
 
 	if (user.Role.Name == "reviewer") || (user.Role.Name == "approver") {
-		myApprovalRequests, err := s.approvalRequestRepository.GetPendingApprovalRequest(ctx, userID)
+		myApprovalRequests, err := s.approvalRequestRepository.GetPendingApprovalRequest(ctx, userID, "")
 		if err != nil {
 			return response, err
 		}

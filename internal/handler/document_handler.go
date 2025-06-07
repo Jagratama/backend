@@ -27,7 +27,10 @@ func (h *DocumentHandler) GetAllDocuments(c echo.Context) error {
 		return helpers.SendResponseHTTP(c, http.StatusForbidden, "Unauthorized", nil)
 	}
 
-	documents, err := h.documentService.GetAllDocuments(ctx, userID)
+	title := c.QueryParam("title")
+	status := c.QueryParam("status")
+
+	documents, err := h.documentService.GetAllDocuments(ctx, userID, title, status)
 	if err != nil {
 		return helpers.SendResponseHTTP(c, http.StatusInternalServerError, "Failed to get documents", err.Error())
 	}
@@ -152,7 +155,10 @@ func (h *DocumentHandler) GetDocumentApprovalRequest(c echo.Context) error {
 	if !ok {
 		return helpers.SendResponseHTTP(c, http.StatusForbidden, "Unauthorized", nil)
 	}
-	approvalRequests, err := h.documentService.GetDocumentApprovalRequest(ctx, userID)
+
+	title := c.QueryParam("title")
+
+	approvalRequests, err := h.documentService.GetDocumentApprovalRequest(ctx, userID, title)
 	if err != nil {
 		return helpers.SendResponseHTTP(c, http.StatusInternalServerError, "Failed to get approval request", err.Error())
 	}
@@ -165,7 +171,9 @@ func (h *DocumentHandler) GetDocumentApprovalHistory(c echo.Context) error {
 	if !ok {
 		return helpers.SendResponseHTTP(c, http.StatusForbidden, "Unauthorized", nil)
 	}
-	approvalRequests, err := h.documentService.GetDocumentApprovalHistory(ctx, userID)
+	title := c.QueryParam("title")
+	status := c.QueryParam("status")
+	approvalRequests, err := h.documentService.GetDocumentApprovalHistory(ctx, userID, title, status)
 	if err != nil {
 		return helpers.SendResponseHTTP(c, http.StatusInternalServerError, "Failed to get approval request", err.Error())
 	}
