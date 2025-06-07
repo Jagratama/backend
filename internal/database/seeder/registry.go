@@ -10,6 +10,7 @@ func RunAll(db *gorm.DB) error {
 		PositionSeeder{},
 		UserSeeder{},
 		CategorySeeder{},
+		PositionCategoryRuleSeeder{},
 	}
 
 	for _, s := range seeders {
