@@ -9,6 +9,7 @@ import (
 	"jagratama-backend/internal/helpers"
 	"jagratama-backend/internal/model"
 	"jagratama-backend/internal/repository"
+	"math"
 	"time"
 
 	"gorm.io/gorm"
@@ -28,15 +29,24 @@ func NewDocumentService(documentRepository repository.DocumentRepository, approv
 	}
 }
 
-func (s *DocumentService) GetAllDocuments(ctx context.Context, userID int, title, status string) ([]*dto.DocumentResponse, error) {
-	documents, err := s.documentRepository.GetAllDocuments(ctx, userID, title, status)
+func (s *DocumentService) GetAllDocuments(ctx context.Context, userID int, title, status string, pagination *dto.Pagination) (*dto.DocumentPaginationResponse, error) {
+	if pagination.Page == 0 {
+		pagination.Page = 1
+	}
+	if pagination.Limit == 0 {
+		pagination.Limit = 10
+	}
+
+	documents, total, err := s.documentRepository.GetAllDocuments(ctx, userID, title, status, pagination.Page, pagination.Limit)
 	if err != nil {
 		return nil, err
 	}
 
-	response := make([]*dto.DocumentResponse, 0)
+	totalPage := int(math.Ceil(float64(total) / float64(pagination.Limit)))
+
+	documentsData := make([]*dto.DocumentResponse, 0)
 	for _, document := range documents {
-		response = append(response, &dto.DocumentResponse{
+		documentsData = append(documentsData, &dto.DocumentResponse{
 			ID:         document.ID,
 			Title:      document.Title,
 			Slug:       document.Slug,
@@ -63,7 +73,16 @@ func (s *DocumentService) GetAllDocuments(ctx context.Context, userID int, title
 			},
 		})
 	}
-	return response, nil
+
+	result := dto.DocumentPaginationResponse{
+		Data:      documentsData,
+		Page:      pagination.Page,
+		Limit:     pagination.Limit,
+		TotalPage: totalPage,
+		TotalData: int(total),
+	}
+
+	return &result, nil
 }
 
 func (s *DocumentService) GetDocumentBySlug(ctx context.Context, slug string, userID int) (*dto.DocumentResponse, error) {

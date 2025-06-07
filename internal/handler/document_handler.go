@@ -27,10 +27,15 @@ func (h *DocumentHandler) GetAllDocuments(c echo.Context) error {
 		return helpers.SendResponseHTTP(c, http.StatusForbidden, "Unauthorized", nil)
 	}
 
+	pagination := &dto.Pagination{}
+	if err := c.Bind(pagination); err != nil {
+		return helpers.SendResponseHTTP(c, http.StatusBadRequest, "Invalid pagination parameters", err.Error())
+	}
+
 	title := c.QueryParam("title")
 	status := c.QueryParam("status")
 
-	documents, err := h.documentService.GetAllDocuments(ctx, userID, title, status)
+	documents, err := h.documentService.GetAllDocuments(ctx, userID, title, status, pagination)
 	if err != nil {
 		return helpers.SendResponseHTTP(c, http.StatusInternalServerError, "Failed to get documents", err.Error())
 	}

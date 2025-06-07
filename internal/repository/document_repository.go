@@ -19,8 +19,9 @@ func NewDocumentRepository(db *gorm.DB) *DocumentRepository {
 	}
 }
 
-func (r *DocumentRepository) GetAllDocuments(ctx context.Context, userID int, title, status string) ([]*model.Document, error) {
+func (r *DocumentRepository) GetAllDocuments(ctx context.Context, userID int, title, status string, page, limit int) ([]*model.Document, int64, error) {
 	var documents []*model.Document
+	var total int64
 
 	query := r.db.WithContext(ctx).
 		Where("user_id = ? AND confirmed = ?", userID, true)
@@ -33,7 +34,16 @@ func (r *DocumentRepository) GetAllDocuments(ctx context.Context, userID int, ti
 		query = query.Where("last_status = ?", status)
 	}
 
-	err := query.
+	err := query.Model(&model.Document{}).Count(&total).Error
+	if err != nil {
+		return nil, 0, err
+	}
+	
+	offset := (page - 1) * limit
+	err = query.
+		Offset(offset).
+		Limit(limit).
+		Order("created_at DESC").
 		Preload("File").
 		Preload("User").
 		Preload("User.File").
@@ -42,7 +52,7 @@ func (r *DocumentRepository) GetAllDocuments(ctx context.Context, userID int, ti
 		Preload("AddressedUser.File").
 		Find(&documents).Error
 
-	return documents, err
+	return documents, total, err
 }
 
 func (r *DocumentRepository) GetDocumentByID(ctx context.Context, id int) (*model.Document, error) {

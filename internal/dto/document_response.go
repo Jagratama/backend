@@ -22,6 +22,14 @@ type DocumentResponse struct {
 	Category      CategoryResponse     `json:"category"`
 }
 
+type DocumentPaginationResponse struct {
+	Data      []*DocumentResponse `json:"data"`
+	TotalData int                 `json:"total_data"`
+	Limit     int                 `json:"limit"`
+	Page      int                 `json:"page"`
+	TotalPage int                 `json:"total_page"`
+}
+
 type DocumentRequestResponse struct {
 	ID          uint      `json:"id"`
 	UserID      uint      `json:"user_id"`
