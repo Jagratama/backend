@@ -102,6 +102,7 @@ func (s *DocumentService) GetDocumentBySlug(ctx context.Context, slug string, us
 		File:        config.GetEnv("AWS_S3_URL", "") + document.File.FilePath,
 		LastStatus:  document.LastStatus,
 		ApprovedAt:  document.ApprovedAt,
+		CreatedAt: document.CreatedAt,
 		User: dto.UserDocumentResponse{
 			ID:    document.User.ID,
 			Name:  document.User.Name,
@@ -129,7 +130,14 @@ func (s *DocumentService) CreateDocument(ctx context.Context, documentRequest *d
 
 	// Validate approvers can't repeat
 	approverMap := make(map[string]bool)
-	approverIDs := []int{}
+	approverDatas := []struct {
+		ID    int
+		Order int
+	}{}
+
+	lastApproverID := 0
+	lastApproverOrder := 0
+
 	for _, approverEmail := range documentRequest.ApproverEmails {
 		if approverMap[approverEmail] {
 			return nil, fmt.Errorf("approver with ID %s already exists", approverEmail)
@@ -145,7 +153,26 @@ func (s *DocumentService) CreateDocument(ctx context.Context, documentRequest *d
 			return nil, fmt.Errorf("user with email %s not found", approverEmail)
 		}
 
-		approverIDs = append(approverIDs, int(user.ID))
+		positionRule, err := s.positionCategoryRuleRepository.GetPositionRuleByCategoryIDAndPositionID(documentRequest.CategoryID, user.PositionID)
+		if err != nil {
+			return nil, fmt.Errorf("user with email %s does not have permission to approve this document", approverEmail)
+		}
+
+		approver := struct {
+			ID    int
+			Order int
+		}{
+			ID:    int(user.ID),
+			Order: positionRule.DisplayOrder,
+		}
+
+		approverDatas = append(approverDatas, approver)
+
+		// Ensure that the last approver ID is the highest order
+		if approver.Order > lastApproverOrder {
+			lastApproverID = approver.ID
+			lastApproverOrder = approver.Order
+		}
 	}
 
 	slug, err := helpers.GenerateSlug(documentRequest.Title, 8)
@@ -154,7 +181,6 @@ func (s *DocumentService) CreateDocument(ctx context.Context, documentRequest *d
 	}
 	documentRequest.Slug = slug
 
-	lastApproverID := approverIDs[len(approverIDs)-1]
 	// Create the document
 	document := &model.Document{
 		UserID:          documentRequest.UserID,
@@ -172,10 +198,11 @@ func (s *DocumentService) CreateDocument(ctx context.Context, documentRequest *d
 	}
 
 	// Create approvers
-	for _, approverID := range approverIDs {
+	for _, approver := range approverDatas {
 		approver := &model.ApprovalRequest{
-			DocumentID: newDocument.ID,
-			UserID:     uint(approverID),
+			DocumentID:   newDocument.ID,
+			UserID:       uint(approver.ID),
+			DisplayOrder: approver.Order,
 		}
 		err = s.approvalRequestRepository.CreateDocumentApprovalRequest(ctx, approver)
 		if err != nil {
