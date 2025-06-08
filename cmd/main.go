@@ -50,30 +50,27 @@ func main() {
 	}
 
 	fileRepository := repository.NewFileRepository(db)
-	fileService := service.NewFileService(*fileRepository, s3Uploader)
-	fileHandler := handler.NewFileHandler(*fileService)
-
 	refreshTokenRepository := repository.NewRefreshTokenRepository(db)
 	userRepository := repository.NewUserRepository(db)
-	userService := service.NewUserService(*userRepository, *refreshTokenRepository)
-	userHandler := handler.NewUserHandler(*userService)
-
 	approvalRequestRepository := repository.NewApprovalRequestRepository(db)
 	documentRepository := repository.NewDocumentRepository(db)
-	documentService := service.NewDocumentService(*documentRepository, *approvalRequestRepository, *userRepository)
-	documentHandler := handler.NewDocumentHandler(*documentService)
-
 	roleRepository := repository.NewRoleRepository(db)
-	roleService := service.NewRoleService(*roleRepository)
-	roleHandler := handler.NewRoleHandler(*roleService)
-
 	positionCategoryRuleRepository := repository.NewPositionCategoryRuleRepository(db)
 	positionRepository := repository.NewPositionRepository(db)
-	positionService := service.NewPositionService(*positionRepository, *positionCategoryRuleRepository)
-	positionHandler := handler.NewPositionHandler(*positionService)
-
 	categoryRepository := repository.NewCategoryRepository(db)
+
+	fileService := service.NewFileService(*fileRepository, s3Uploader)
+	userService := service.NewUserService(*userRepository, *refreshTokenRepository)
+	documentService := service.NewDocumentService(*documentRepository, *approvalRequestRepository, *userRepository, *positionCategoryRuleRepository)
+	roleService := service.NewRoleService(*roleRepository)
+	positionService := service.NewPositionService(*positionRepository, *positionCategoryRuleRepository)
 	categoryService := service.NewCategoryService(*categoryRepository)
+
+	fileHandler := handler.NewFileHandler(*fileService)
+	userHandler := handler.NewUserHandler(*userService)
+	documentHandler := handler.NewDocumentHandler(*documentService)
+	roleHandler := handler.NewRoleHandler(*roleService)
+	positionHandler := handler.NewPositionHandler(*positionService)
 	categoryHandler := handler.NewCategoryHandler(*categoryService)
 
 	e := echo.New()
