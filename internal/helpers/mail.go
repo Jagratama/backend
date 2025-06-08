@@ -116,11 +116,6 @@ func templateDocumentApprovedMail(toName, fromName string, document *model.Docum
 						<td align="center" style="padding: 20px 0;">
 							<table border="0" cellpadding="0" cellspacing="0" class="container" width="100%">
 								<tr>
-									<td class="header">
-										<img src="https://placehold.co/150x50/1f939c/ffffff?text=JAGRATAMA" alt="Logo Jagratama">
-									</td>
-								</tr>
-								<tr>
 									<td class="content">
 										<h2 style="margin-top: 0; margin-bottom: 20px; color: #333333; font-size: 24px; font-weight: 700;">
 											Permintaan Approval Dokumen Baru
