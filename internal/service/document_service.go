@@ -16,16 +16,18 @@ import (
 )
 
 type DocumentService struct {
-	documentRepository        repository.DocumentRepository
-	approvalRequestRepository repository.ApprovalRequestRepository
-	userRepository            repository.UserRepository
+	documentRepository             repository.DocumentRepository
+	approvalRequestRepository      repository.ApprovalRequestRepository
+	userRepository                 repository.UserRepository
+	positionCategoryRuleRepository repository.PositionCategoryRuleRepository
 }
 
-func NewDocumentService(documentRepository repository.DocumentRepository, approvalRequestRepository repository.ApprovalRequestRepository, userRepository repository.UserRepository) *DocumentService {
+func NewDocumentService(documentRepository repository.DocumentRepository, approvalRequestRepository repository.ApprovalRequestRepository, userRepository repository.UserRepository, positionCategoryRuleRepository repository.PositionCategoryRuleRepository) *DocumentService {
 	return &DocumentService{
-		documentRepository:        documentRepository,
-		approvalRequestRepository: approvalRequestRepository,
-		userRepository:            userRepository,
+		documentRepository:             documentRepository,
+		approvalRequestRepository:      approvalRequestRepository,
+		userRepository:                 userRepository,
+		positionCategoryRuleRepository: positionCategoryRuleRepository,
 	}
 }
 
@@ -280,14 +282,14 @@ func (s *DocumentService) ApprovalAction(ctx context.Context, slug string, userI
 		return err
 	}
 
+	positionCategoryRule, err := s.positionCategoryRuleRepository.GetPositionRuleByCategoryIDAndPositionID(document.CategoryID, user.PositionID)
+	if err != nil {
+		return err
+	}
+
 	requiresSignature := false
-	if len(user.Position.RequiresSignatureByCategoryType) > 0 {
-		for _, categoryType := range user.Position.RequiresSignatureByCategoryType {
-			if categoryType == document.Category.Type {
-				requiresSignature = true
-				break
-			}
-		}
+	if positionCategoryRule.NeedSignature {
+		requiresSignature = true
 	}
 
 	approvalData := &model.ApprovalRequest{}
@@ -592,14 +594,14 @@ func (s *DocumentService) GetDocumentApprovalReviewDetail(ctx context.Context, s
 		filePath = document.File.FilePath
 	}
 
+	positionCategoryRule, err := s.positionCategoryRuleRepository.GetPositionRuleByCategoryIDAndPositionID(document.CategoryID, user.PositionID)
+	if err != nil {
+		return nil, err
+	}
+
 	requiresSignature := false
-	if len(user.Position.RequiresSignatureByCategoryType) > 0 {
-		for _, categoryType := range user.Position.RequiresSignatureByCategoryType {
-			if categoryType == document.Category.Type {
-				requiresSignature = true
-				break
-			}
-		}
+	if positionCategoryRule.NeedSignature {
+		requiresSignature = true
 	}
 
 	IsReviewer := false

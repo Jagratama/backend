@@ -23,3 +23,11 @@ func (r *PositionCategoryRuleRepository) GetPositionsRuleByCategoryID(categoryID
 	}
 	return rules, nil
 }
+
+func (r *PositionCategoryRuleRepository) GetPositionRuleByCategoryIDAndPositionID(categoryID, positionID uint) (*model.PositionCategoryRule, error) {
+	var rule model.PositionCategoryRule
+	if err := r.db.Where("category_id = ? AND position_id = ?", categoryID, positionID).Preload("Position").First(&rule).Error; err != nil {
+		return nil, err
+	}
+	return &rule, nil
+}
