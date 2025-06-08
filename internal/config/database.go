@@ -27,7 +27,7 @@ func ConnectDB() (*gorm.DB, error) {
 func MigrateDB(db *gorm.DB) error {
 	mode := GetEnv("APP_ENV", "development")
 	if mode == "production" {
-		err := db.AutoMigrate(&model.User{}, &model.RefreshToken{}, &model.Document{}, &model.ApprovalRequest{})
+		err := db.AutoMigrate(&model.User{}, &model.RefreshToken{}, &model.Document{}, &model.ApprovalRequest{}, &model.PositionCategoryRule{})
 		if err != nil {
 			return fmt.Errorf("failed to migrate database: %w", err)
 		}
