@@ -18,14 +18,39 @@ func NewUserRepository(db *gorm.DB) *UserRepository {
 	}
 }
 
-func (r *UserRepository) GetAllUsers(ctx context.Context) ([]*model.User, error) {
+func (r *UserRepository) GetAllUsers(ctx context.Context, name string, position_id, page, limit int) ([]*model.User, int64, error) {
 	var users []*model.User
+	var total int64
 
-	err := r.db.WithContext(ctx).Preload("Role").Preload("Position").Preload("File").Find(&users).Error
-	if err != nil {
-		return nil, err
+	query := r.db.WithContext(ctx)
+
+	if name != "" {
+		query = query.Where("name ILIKE ?", "%"+name+"%")
 	}
-	return users, nil
+
+	if position_id > 0 {
+		query = query.Where("position_id = ?", position_id)
+	}
+
+	err := query.Model(&model.User{}).Count(&total).Error
+	if err != nil {
+		return nil, 0, err
+	}
+
+	offset := (page - 1) * limit
+	err = query.
+		Offset(offset).
+		Limit(limit).
+		Preload("Role").
+		Preload("Position").
+		Preload("File").
+		Order("created_at DESC").
+		Find(&users).Error
+
+	if err != nil {
+		return nil, 0, err
+	}
+	return users, total, nil
 }
 
 func (r *UserRepository) GetUserByID(ctx context.Context, id int) (*model.User, error) {

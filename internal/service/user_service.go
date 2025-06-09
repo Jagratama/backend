@@ -7,6 +7,7 @@ import (
 	"jagratama-backend/internal/dto"
 	"jagratama-backend/internal/model"
 	"jagratama-backend/internal/repository"
+	"math"
 	"strconv"
 	"time"
 
@@ -114,21 +115,40 @@ func (s *UserService) Login(ctx context.Context, email string, password string) 
 }
 
 // GetAllUsers retrieves all users from the database
-func (s *UserService) GetAllUsers(ctx context.Context) ([]*dto.UserResponse, error) {
-	users, err := s.userRepository.GetAllUsers(ctx)
+func (s *UserService) GetAllUsers(ctx context.Context, name string, position_id string, pagination *dto.Pagination) (*dto.UserPaginationResponse, error) {
+	if pagination.Page == 0 {
+		pagination.Page = 1
+	}
+	if pagination.Limit == 0 {
+		pagination.Limit = 10
+	}
+
+	posID := 0
+	if position_id != "" {
+		var err error
+		posID, err = strconv.Atoi(position_id)
+		if err != nil {
+			return nil, fmt.Errorf("invalid position_id: %v", err)
+		}
+	}
+
+	users, total, err := s.userRepository.GetAllUsers(ctx, name, posID, pagination.Page, pagination.Limit)
 	if err != nil {
 		return nil, err
 	}
 
-	response := []*dto.UserResponse{}
+	totalPage := int(math.Ceil(float64(total) / float64(pagination.Limit)))
+
+	usersData := []*dto.UserResponse{}
 	for _, user := range users {
-		response = append(response, &dto.UserResponse{
-			ID:         user.ID,
-			Name:       user.Name,
-			Email:      user.Email,
-			RoleID:     user.RoleID,
-			PositionID: user.PositionID,
-			Image:      config.GetEnv("AWS_S3_URL", "") + user.File.FilePath,
+		usersData = append(usersData, &dto.UserResponse{
+			ID:           user.ID,
+			Name:         user.Name,
+			Email:        user.Email,
+			RoleID:       user.RoleID,
+			PositionID:   user.PositionID,
+			Image:        config.GetEnv("AWS_S3_URL", "") + user.File.FilePath,
+			Organization: user.Organization,
 			Role: dto.Role{
 				ID:   user.Role.ID,
 				Name: user.Role.Name,
@@ -140,7 +160,15 @@ func (s *UserService) GetAllUsers(ctx context.Context) ([]*dto.UserResponse, err
 		})
 	}
 
-	return response, nil
+	result := dto.UserPaginationResponse{
+		Data:      usersData,
+		Page:      pagination.Page,
+		Limit:     pagination.Limit,
+		TotalPage: totalPage,
+		TotalData: int(total),
+	}
+
+	return &result, nil
 }
 
 // CreateUser creates a new user
@@ -159,12 +187,13 @@ func (s *UserService) CreateUser(ctx context.Context, user *model.User) (*dto.Us
 	}
 
 	response := &dto.UserResponse{
-		ID:         newUser.ID,
-		Name:       newUser.Name,
-		Email:      newUser.Email,
-		RoleID:     newUser.RoleID,
-		PositionID: newUser.PositionID,
-		Image:      config.GetEnv("AWS_S3_URL", "") + newUser.File.FilePath,
+		ID:           newUser.ID,
+		Name:         newUser.Name,
+		Email:        newUser.Email,
+		RoleID:       newUser.RoleID,
+		PositionID:   newUser.PositionID,
+		Image:        config.GetEnv("AWS_S3_URL", "") + newUser.File.FilePath,
+		Organization: newUser.Organization,
 		Role: dto.Role{
 			ID:   newUser.Role.ID,
 			Name: newUser.Role.Name,
@@ -185,12 +214,13 @@ func (s *UserService) GetUserByID(ctx context.Context, id int) (*dto.UserRespons
 	}
 
 	response := &dto.UserResponse{
-		ID:         user.ID,
-		Name:       user.Name,
-		Email:      user.Email,
-		RoleID:     user.RoleID,
-		PositionID: user.PositionID,
-		Image:      config.GetEnv("AWS_S3_URL", "") + user.File.FilePath,
+		ID:           user.ID,
+		Name:         user.Name,
+		Email:        user.Email,
+		RoleID:       user.RoleID,
+		PositionID:   user.PositionID,
+		Image:        config.GetEnv("AWS_S3_URL", "") + user.File.FilePath,
+		Organization: user.Organization,
 		Role: dto.Role{
 			ID:   user.Role.ID,
 			Name: user.Role.Name,
@@ -220,12 +250,13 @@ func (s *UserService) UpdateUser(ctx context.Context, user *model.User) (*dto.Us
 	}
 
 	response := &dto.UserResponse{
-		ID:         updatedUser.ID,
-		Name:       updatedUser.Name,
-		Email:      updatedUser.Email,
-		RoleID:     updatedUser.RoleID,
-		PositionID: updatedUser.PositionID,
-		Image:      config.GetEnv("AWS_S3_URL", "") + updatedUser.File.FilePath,
+		ID:           updatedUser.ID,
+		Name:         updatedUser.Name,
+		Email:        updatedUser.Email,
+		RoleID:       updatedUser.RoleID,
+		PositionID:   updatedUser.PositionID,
+		Image:        config.GetEnv("AWS_S3_URL", "") + updatedUser.File.FilePath,
+		Organization: updatedUser.Organization,
 		Role: dto.Role{
 			ID:   updatedUser.Role.ID,
 			Name: updatedUser.Role.Name,
@@ -261,12 +292,13 @@ func (s *UserService) GetMe(ctx context.Context, id int) (*dto.UserResponse, err
 	}
 
 	response := &dto.UserResponse{
-		ID:         user.ID,
-		Name:       user.Name,
-		Email:      user.Email,
-		RoleID:     user.RoleID,
-		PositionID: user.PositionID,
-		Image:      config.GetEnv("AWS_S3_URL", "") + user.File.FilePath,
+		ID:           user.ID,
+		Name:         user.Name,
+		Email:        user.Email,
+		RoleID:       user.RoleID,
+		PositionID:   user.PositionID,
+		Image:        config.GetEnv("AWS_S3_URL", "") + user.File.FilePath,
+		Organization: user.Organization,
 		Role: dto.Role{
 			ID:   user.Role.ID,
 			Name: user.Role.Name,
@@ -289,12 +321,13 @@ func (s *UserService) GetApproverReviewerUsers(ctx context.Context) ([]*dto.User
 
 	for _, user := range users {
 		response = append(response, &dto.UserResponse{
-			ID:         user.ID,
-			Name:       user.Name,
-			Email:      user.Email,
-			RoleID:     user.RoleID,
-			PositionID: user.PositionID,
-			Image:      config.GetEnv("AWS_S3_URL", "") + user.File.FilePath,
+			ID:           user.ID,
+			Name:         user.Name,
+			Email:        user.Email,
+			RoleID:       user.RoleID,
+			PositionID:   user.PositionID,
+			Image:        config.GetEnv("AWS_S3_URL", "") + user.File.FilePath,
+			Organization: user.Organization,
 			Role: dto.Role{
 				ID:   user.Role.ID,
 				Name: user.Role.Name,
@@ -329,12 +362,13 @@ func (s *UserService) UpdateUserProfile(ctx context.Context, user *dto.UpdatePro
 	}
 
 	response := &dto.UserResponse{
-		ID:         updatedUser.ID,
-		Name:       updatedUser.Name,
-		Email:      updatedUser.Email,
-		RoleID:     updatedUser.RoleID,
-		PositionID: updatedUser.PositionID,
-		Image:      config.GetEnv("AWS_S3_URL", "") + updatedUser.File.FilePath,
+		ID:           updatedUser.ID,
+		Name:         updatedUser.Name,
+		Email:        updatedUser.Email,
+		RoleID:       updatedUser.RoleID,
+		PositionID:   updatedUser.PositionID,
+		Image:        config.GetEnv("AWS_S3_URL", "") + updatedUser.File.FilePath,
+		Organization: updatedUser.Organization,
 	}
 
 	return response, nil

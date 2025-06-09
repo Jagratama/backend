@@ -45,10 +45,19 @@ func (h *UserHandler) Login(c echo.Context) error {
 
 func (h *UserHandler) GetAllUsers(c echo.Context) error {
 	ctx := c.Request().Context()
-	users, err := h.userService.GetAllUsers(ctx)
+	
+	pagination := &dto.Pagination{}
+	if err := c.Bind(pagination); err != nil {
+		return helpers.SendResponseHTTP(c, http.StatusBadRequest, "Invalid pagination parameters", err.Error())
+	}
+
+	name := c.QueryParam("name")
+	position_id := c.QueryParam("position_id")
+	users, err := h.userService.GetAllUsers(ctx, name, position_id, pagination)
 	if err != nil {
 		return helpers.SendResponseHTTP(c, http.StatusInternalServerError, "Failed to get all users", err.Error())
 	}
+
 
 	return helpers.SendResponseHTTP(c, http.StatusOK, "Successfully to get all users", users)
 }
