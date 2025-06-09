@@ -32,5 +32,12 @@ func (s CategorySeeder) Run(db *gorm.DB) error {
 			return err
 		}
 	}
+
+	err := db.Exec("SELECT setval('categories_id_seq', (SELECT MAX(id) FROM categories))").Error
+	if err != nil {
+		fmt.Printf("Error resetting categories ID sequence: %v\n", err)
+		return err
+	}
+
 	return nil
 }

@@ -26,5 +26,12 @@ func (s FileSeeder) Run(db *gorm.DB) error {
 			return err
 		}
 	}
+
+	err := db.Exec("SELECT setval('files_id_seq', (SELECT MAX(id) FROM files))").Error
+	if err != nil {
+		fmt.Printf("Error resetting sequence for files: %v\n", err)
+		return err
+	}
+
 	return nil
 }

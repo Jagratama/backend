@@ -59,5 +59,12 @@ func (s UserSeeder) Run(db *gorm.DB) error {
 			return err
 		}
 	}
+
+	err := db.Exec("SELECT setval('users_id_seq', (SELECT MAX(id) FROM users))").Error
+	if err != nil {
+		fmt.Printf("Error resetting user ID sequence: %v\n", err)
+		return err
+	}
+
 	return nil
 }

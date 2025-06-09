@@ -108,5 +108,12 @@ func (s PositionCategoryRuleSeeder) Run(db *gorm.DB) error {
 			return err
 		}
 	}
+
+	err := db.Exec("SELECT setval('position_category_rules_id_seq', (SELECT MAX(id) FROM position_category_rules))").Error
+	if err != nil {
+		fmt.Printf("Error resetting sequence for position_category_rules: %v\n", err)
+		return err
+	}
+
 	return nil
 }
