@@ -72,7 +72,7 @@ func (r *ApprovalRequestRepository) GetApprovalRequest(ctx context.Context, user
 		query = query.Where("documents.last_status = ?", status)
 	}
 
-	err := query.Find(&approvalRequests).Error
+	err := query.Order("created_at DESC").Find(&approvalRequests).Error
 
 	if err != nil {
 		return nil, err
@@ -96,7 +96,7 @@ func (r *ApprovalRequestRepository) GetPendingApprovalRequest(ctx context.Contex
 		query = query.Where("documents.title ILIKE ?", "%"+title+"%")
 	}
 
-	err := query.Find(&approvalRequests).Error
+	err := query.Order("created_at DESC").Find(&approvalRequests).Error
 
 	if err != nil {
 		return nil, err
