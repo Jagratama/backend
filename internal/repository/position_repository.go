@@ -18,7 +18,7 @@ func NewPositionRepository(db *gorm.DB) *PositionRepository {
 }
 func (r *PositionRepository) GetAllPositions(ctx context.Context) ([]*model.Position, error) {
 	var positions []*model.Position
-	err := r.db.Find(&positions).Error
+	err := r.db.Order("name ASC").Find(&positions).Error
 	if err != nil {
 		return nil, err
 	}
