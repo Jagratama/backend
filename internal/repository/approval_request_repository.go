@@ -118,7 +118,7 @@ func (r *ApprovalRequestRepository) GetUnApprovedApprovalByDocumentID(ctx contex
 func (r *ApprovalRequestRepository) GetLatestApprovalRequestApproved(ctx context.Context, documentID int) (*model.ApprovalRequest, error) {
 	var approvalRequest model.ApprovalRequest
 
-	err := r.db.WithContext(ctx).Where("document_id = ? AND status = ?", documentID, "approved").Order("id DESC").Preload("File").First(&approvalRequest).Error
+	err := r.db.WithContext(ctx).Where("document_id = ? AND status = ?", documentID, "approved").Order("id DESC").Preload("File").Preload("FileReupload").First(&approvalRequest).Error
 	if err != nil {
 		return nil, err
 	}
@@ -155,6 +155,28 @@ func (r *ApprovalRequestRepository) GetFirstApprovalRequestByDocumentID(ctx cont
 	var approvalRequest model.ApprovalRequest
 
 	err := r.db.WithContext(ctx).Where("document_id = ?", documentID).Order("id ASC").Preload("User").First(&approvalRequest).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return &approvalRequest, nil
+}
+
+func (r *ApprovalRequestRepository) GetApprovalRequestByID(ctx context.Context, id int) (*model.ApprovalRequest, error) {
+	var approvalRequest model.ApprovalRequest
+
+	err := r.db.WithContext(ctx).Where("id = ?", id).Preload("User").Preload("File").First(&approvalRequest).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return &approvalRequest, nil
+}
+
+func (r *ApprovalRequestRepository) GetApprovalRequestByDocumentIDAndUserID(ctx context.Context, documentID int, userID int) (*model.ApprovalRequest, error) {
+	var approvalRequest model.ApprovalRequest
+
+	err := r.db.WithContext(ctx).Where("document_id = ? AND user_id = ?", documentID, userID).Preload("File").Preload("FileReupload").First(&approvalRequest).Error
 	if err != nil {
 		return nil, err
 	}

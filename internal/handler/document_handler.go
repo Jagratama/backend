@@ -6,6 +6,7 @@ import (
 	"jagratama-backend/internal/model"
 	"jagratama-backend/internal/service"
 	"net/http"
+	"strconv"
 
 	"github.com/labstack/echo/v4"
 )
@@ -208,10 +209,10 @@ func (h *DocumentHandler) GetDocumentApprovalReviewDetail(c echo.Context) error 
 
 	document, err := h.documentService.GetDocumentApprovalReviewDetail(ctx, slug, userID)
 	if err != nil {
-		return helpers.SendResponseHTTP(c, http.StatusInternalServerError, "Failed to get document progress", err.Error())
+		return helpers.SendResponseHTTP(c, http.StatusInternalServerError, "Failed to get document", err.Error())
 	}
 
-	return helpers.SendResponseHTTP(c, http.StatusOK, "Successfully to get document progress", document)
+	return helpers.SendResponseHTTP(c, http.StatusOK, "Successfully to get document", document)
 }
 
 func (h *DocumentHandler) ConfirmDocument(c echo.Context) error {
@@ -241,6 +242,7 @@ func (h *DocumentHandler) ConfirmDocument(c echo.Context) error {
 func (h *DocumentHandler) ReuploadDocument(c echo.Context) error {
 	ctx := c.Request().Context()
 	slug := c.Param("slug")
+	approvalID := c.Param("approvalID")
 	requestData := struct {
 		FileID int `json:"file_id"`
 	}{}
@@ -254,7 +256,12 @@ func (h *DocumentHandler) ReuploadDocument(c echo.Context) error {
 		return helpers.SendResponseHTTP(c, http.StatusForbidden, "Unauthorized", nil)
 	}
 
-	err := h.documentService.ReuploadDocument(ctx, slug, userID, requestData.FileID)
+	approvalIDInt, err := strconv.Atoi(approvalID)
+	if err != nil {
+		return helpers.SendResponseHTTP(c, http.StatusBadRequest, "Invalid approval ID", err.Error())
+	}
+
+	err = h.documentService.ReuploadDocument(ctx, slug, approvalIDInt, userID, requestData.FileID)
 	if err != nil {
 		return helpers.SendResponseHTTP(c, http.StatusInternalServerError, "Failed to reupload document", err.Error())
 	}

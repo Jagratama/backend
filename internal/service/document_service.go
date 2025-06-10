@@ -102,7 +102,7 @@ func (s *DocumentService) GetDocumentBySlug(ctx context.Context, slug string, us
 		File:        config.GetEnv("AWS_S3_URL", "") + document.File.FilePath,
 		LastStatus:  document.LastStatus,
 		ApprovedAt:  document.ApprovedAt,
-		CreatedAt: document.CreatedAt,
+		CreatedAt:   document.CreatedAt,
 		User: dto.UserDocumentResponse{
 			ID:    document.User.ID,
 			Name:  document.User.Name,
@@ -607,13 +607,21 @@ func (s *DocumentService) GetDocumentApprovalReviewDetail(ctx context.Context, s
 		return nil, err
 	}
 
+	userApprovalReqest, err := s.approvalRequestRepository.GetApprovalRequestByDocumentIDAndUserID(ctx, int(document.ID), userID)
+	if err != nil {
+		return nil, err
+	}
+
 	user, err := s.userRepository.GetUserByID(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
 
 	var filePath string
-	if approvalRequests != nil && approvalRequests.FileID != nil {
+	if userApprovalReqest.FileIDReupload != nil {
+		// reupload file, get file from reupload
+		filePath = userApprovalReqest.FileReupload.FilePath
+	} else if approvalRequests != nil && approvalRequests.FileID != nil {
 		// approved by someone, get file from before approver
 		filePath = approvalRequests.File.FilePath
 	} else {
@@ -681,7 +689,7 @@ func (s *DocumentService) ConfirmDocument(ctx context.Context, slug string, user
 	return nil
 }
 
-func (s *DocumentService) ReuploadDocument(ctx context.Context, slug string, userID int, fileID int) error {
+func (s *DocumentService) ReuploadDocument(ctx context.Context, slug string, approvalID int, userID int, fileID int) error {
 	document, err := s.documentRepository.GetDocumentBySlug(ctx, slug)
 	if err != nil {
 		return err
@@ -690,21 +698,18 @@ func (s *DocumentService) ReuploadDocument(ctx context.Context, slug string, use
 	if document.UserID != uint(userID) {
 		return fmt.Errorf("you are not authorized to reupload this document")
 	}
-	document.FileID = uint(fileID)
 
-	_, err = s.documentRepository.UpdateDocumentBySlug(ctx, document, slug, userID)
+	approvalRequest, err := s.approvalRequestRepository.GetApprovalRequestByID(ctx, approvalID)
 	if err != nil {
 		return err
 	}
 
-	approvalRequestsRejected, err := s.approvalRequestRepository.GetApprovalRequestDocumentsByDocumentIDAndStatus(ctx, int(document.ID), dto.StatusReject)
+	fileIDUint := uint(fileID)
+	approvalRequest.FileIDReupload = &fileIDUint
+	approvalRequest.Status = dto.StatusPending
+	err = s.approvalRequestRepository.UpdateApprovalRequest(ctx, int(document.ID), int(approvalRequest.UserID), approvalRequest)
 	if err != nil {
 		return err
-	}
-
-	for _, approvalRequest := range approvalRequestsRejected {
-		approvalRequest.Status = dto.StatusPending
-		s.approvalRequestRepository.UpdateApprovalRequest(ctx, int(document.ID), int(approvalRequest.UserID), approvalRequest)
 	}
 
 	return nil
