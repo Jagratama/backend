@@ -270,6 +270,30 @@ func (s *UserService) UpdateUser(ctx context.Context, user *model.User) (*dto.Us
 	return response, nil
 }
 
+func (s *UserService) UpdateUserPassword(ctx context.Context, id int, password string) error {
+	// Check if the user exists
+	user, err := s.userRepository.GetUserByID(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	// Hash the new password
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+
+	user.Password = string(hashedPassword)
+
+	// Save the updated user to the database
+	_, err = s.userRepository.UpdateUser(ctx, user)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (s *UserService) DeleteUser(ctx context.Context, id int) error {
 	_, err := s.userRepository.GetUserByID(ctx, id)
 	if err != nil {

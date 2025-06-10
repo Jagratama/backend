@@ -706,6 +706,7 @@ func (s *DocumentService) ReuploadDocument(ctx context.Context, slug string, app
 
 	fileIDUint := uint(fileID)
 	approvalRequest.FileIDReupload = &fileIDUint
+	approvalRequest.Note = nil // reset note when reuploading
 	approvalRequest.Status = dto.StatusPending
 	err = s.approvalRequestRepository.UpdateApprovalRequest(ctx, int(document.ID), int(approvalRequest.UserID), approvalRequest)
 	if err != nil {

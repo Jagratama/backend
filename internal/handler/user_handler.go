@@ -45,7 +45,7 @@ func (h *UserHandler) Login(c echo.Context) error {
 
 func (h *UserHandler) GetAllUsers(c echo.Context) error {
 	ctx := c.Request().Context()
-	
+
 	pagination := &dto.Pagination{}
 	if err := c.Bind(pagination); err != nil {
 		return helpers.SendResponseHTTP(c, http.StatusBadRequest, "Invalid pagination parameters", err.Error())
@@ -57,7 +57,6 @@ func (h *UserHandler) GetAllUsers(c echo.Context) error {
 	if err != nil {
 		return helpers.SendResponseHTTP(c, http.StatusInternalServerError, "Failed to get all users", err.Error())
 	}
-
 
 	return helpers.SendResponseHTTP(c, http.StatusOK, "Successfully to get all users", users)
 }
@@ -112,6 +111,30 @@ func (h *UserHandler) UpdateUser(c echo.Context) error {
 	}
 
 	return helpers.SendResponseHTTP(c, http.StatusOK, "Successfully to update user", updatedUser)
+}
+
+func (h *UserHandler) UpdateUserPassword(c echo.Context) error {
+	ctx := c.Request().Context()
+	userID, ok := c.Get("userID").(int)
+	if !ok {
+		return helpers.SendResponseHTTP(c, http.StatusForbidden, "Unauthorized", nil)
+	}
+
+	passwordUpdate := &dto.UpdatePasswordRequest{}
+	if err := c.Bind(passwordUpdate); err != nil {
+		return helpers.SendResponseHTTP(c, http.StatusBadRequest, "Invalid request body", err.Error())
+	}
+
+	if passwordUpdate.NewPassword != passwordUpdate.ConfirmPassword {
+		return helpers.SendResponseHTTP(c, http.StatusBadRequest, "New password and confirm password do not match", nil)
+	}
+
+	err := h.userService.UpdateUserPassword(ctx, userID, passwordUpdate.NewPassword)
+	if err != nil {
+		return helpers.SendResponseHTTP(c, http.StatusInternalServerError, "Failed to update user password", err.Error())
+	}
+
+	return helpers.SendResponseHTTP(c, http.StatusOK, "Successfully to update user password", nil)
 }
 
 func (h *UserHandler) DeleteUser(c echo.Context) error {

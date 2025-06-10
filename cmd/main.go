@@ -103,6 +103,7 @@ func main() {
 		v1WithAuth.GET("/users", userHandler.GetAllUsers)
 		v1WithAuth.POST("/users", userHandler.CreateUser)
 		v1WithAuth.PUT("/users/profile", userHandler.UpdateUserProfile)
+		v1WithAuth.PUT("/users/password", userHandler.UpdateUserPassword)
 		v1WithAuth.GET("/users/approver-reviewer", userHandler.GetApproverReviewerUsers)
 		v1WithAuth.GET("/users/:id", userHandler.GetUserByID)
 		v1WithAuth.PUT("/users/:id", userHandler.UpdateUser)
