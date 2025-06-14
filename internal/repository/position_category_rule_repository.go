@@ -18,7 +18,7 @@ func NewPositionCategoryRuleRepository(db *gorm.DB) *PositionCategoryRuleReposit
 
 func (r *PositionCategoryRuleRepository) GetPositionsRuleByCategoryID(categoryID uint) ([]*model.PositionCategoryRule, error) {
 	var rules []*model.PositionCategoryRule
-	if err := r.db.Where("category_id = ?", categoryID).Preload("Position").Find(&rules).Error; err != nil {
+	if err := r.db.Where("category_id = ?", categoryID).Preload("Position").Order("display_order asc").Find(&rules).Error; err != nil {
 		return nil, err
 	}
 	return rules, nil
