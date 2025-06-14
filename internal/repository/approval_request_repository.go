@@ -118,7 +118,7 @@ func (r *ApprovalRequestRepository) GetUnApprovedApprovalByDocumentID(ctx contex
 func (r *ApprovalRequestRepository) GetLatestApprovalRequestApproved(ctx context.Context, documentID int) (*model.ApprovalRequest, error) {
 	var approvalRequest model.ApprovalRequest
 
-	err := r.db.WithContext(ctx).Where("document_id = ? AND status = ?", documentID, "approved").Order("id DESC").Preload("File").Preload("FileReupload").First(&approvalRequest).Error
+	err := r.db.WithContext(ctx).Where("document_id = ? AND status = ?", documentID, "approved").Order("display_order DESC").Preload("File").Preload("FileReupload").First(&approvalRequest).Error
 	if err != nil {
 		return nil, err
 	}

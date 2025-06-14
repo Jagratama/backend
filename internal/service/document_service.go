@@ -354,7 +354,9 @@ func (s *DocumentService) ApprovalAction(ctx context.Context, slug string, userI
 					}
 				}
 			} else {
-				if i > 0 {
+				if i > 0 && approval.FileIDReupload != nil {
+					approvalData.FileID = approval.FileIDReupload
+				} else if i > 0 {
 					approvalData.FileID = userApprovals[i-1].FileID
 				} else {
 					approvalData.FileID = &document.FileID
