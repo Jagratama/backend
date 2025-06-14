@@ -343,8 +343,11 @@ func (s *DocumentService) ApprovalAction(ctx context.Context, slug string, userI
 					fileID := uint(approvalRequest.FileID)
 					approvalData.FileID = &fileID
 				} else {
-					// user does not require signature, use file id from before approver
-					if i > 0 {
+					if i > 0 && approval.FileIDReupload != nil {
+						// user does not required signature but file was reuploaded
+						approvalData.FileID = approval.FileIDReupload
+					} else if i > 0 {
+						// user does not require signature, use file id from before approver
 						approvalData.FileID = userApprovals[i-1].FileID
 					} else {
 						approvalData.FileID = &document.FileID
