@@ -235,9 +235,13 @@ func (s *DocumentService) UpdateDocument(ctx context.Context, document *model.Do
 }
 
 func (s *DocumentService) DeleteDocument(ctx context.Context, slug string, userID int) error {
-	_, err := s.documentRepository.GetDocumentBySlug(ctx, slug)
+	document, err := s.documentRepository.GetDocumentBySlug(ctx, slug)
 	if err != nil {
 		return err
+	}
+
+	if document.UserID != uint(userID) {
+		return fmt.Errorf("you are not authorized to delete this document")
 	}
 
 	err = s.documentRepository.DeleteDocument(ctx, slug, userID)

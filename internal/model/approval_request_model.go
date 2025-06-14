@@ -15,7 +15,7 @@ type ApprovalRequest struct {
 	CreatedAt      time.Time `json:"created_at" gorm:"type:timestamp;default:now()"`
 	UpdatedAt      time.Time `json:"updated_at" gorm:"type:timestamp;default:now()"`
 
-	Document     Document `json:"document" gorm:"foreignKey:DocumentID"`
+	Document     Document `json:"document" gorm:"foreignKey:DocumentID;constraint:OnDelete:CASCADE"`
 	User         User     `json:"user" gorm:"foreignKey:UserID"`
 	File         File     `json:"file" gorm:"foreignKey:FileID"`
 	FileReupload File     `json:"file_reupload" gorm:"foreignKey:FileIDReupload"`
