@@ -120,16 +120,12 @@ func (h *UserHandler) UpdateUserPassword(c echo.Context) error {
 		return helpers.SendResponseHTTP(c, http.StatusForbidden, "Unauthorized", nil)
 	}
 
-	passwordUpdate := &dto.UpdatePasswordRequest{}
-	if err := c.Bind(passwordUpdate); err != nil {
+	passwordUpdateRequest := &dto.UpdatePasswordRequest{}
+	if err := c.Bind(passwordUpdateRequest); err != nil {
 		return helpers.SendResponseHTTP(c, http.StatusBadRequest, "Invalid request body", err.Error())
 	}
 
-	if passwordUpdate.NewPassword != passwordUpdate.ConfirmPassword {
-		return helpers.SendResponseHTTP(c, http.StatusBadRequest, "New password and confirm password do not match", nil)
-	}
-
-	err := h.userService.UpdateUserPassword(ctx, userID, passwordUpdate.NewPassword)
+	err := h.userService.UpdateUserPassword(ctx, userID, passwordUpdateRequest)
 	if err != nil {
 		return helpers.SendResponseHTTP(c, http.StatusInternalServerError, "Failed to update user password", err.Error())
 	}

@@ -270,15 +270,20 @@ func (s *UserService) UpdateUser(ctx context.Context, user *model.User) (*dto.Us
 	return response, nil
 }
 
-func (s *UserService) UpdateUserPassword(ctx context.Context, id int, password string) error {
+func (s *UserService) UpdateUserPassword(ctx context.Context, id int, passwordUpdateRequest *dto.UpdatePasswordRequest) error {
 	// Check if the user exists
 	user, err := s.userRepository.GetUserByID(ctx, id)
 	if err != nil {
 		return err
 	}
 
+	// Validate the old password
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(passwordUpdateRequest.OldPassword)); err != nil {
+		return err
+	}
+
 	// Hash the new password
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(passwordUpdateRequest.NewPassword), bcrypt.DefaultCost)
 	if err != nil {
 		return err
 	}
