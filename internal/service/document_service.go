@@ -435,11 +435,12 @@ func (s *DocumentService) GetDocumentApprovalRequest(ctx context.Context, userID
 
 		if canReview {
 			response = append(response, &dto.DocumentRequestResponse{
-				ID:     myApprovalRequest.Document.ID,
-				Title:  myApprovalRequest.Document.Title,
-				Slug:   myApprovalRequest.Document.Slug,
-				File:   config.GetEnv("AWS_S3_URL", "") + myApprovalRequest.Document.File.FilePath,
-				Status: myApprovalRequest.Status,
+				ID:        myApprovalRequest.Document.ID,
+				Title:     myApprovalRequest.Document.Title,
+				Slug:      myApprovalRequest.Document.Slug,
+				File:      config.GetEnv("AWS_S3_URL", "") + myApprovalRequest.Document.File.FilePath,
+				Status:    myApprovalRequest.Status,
+				CreatedAt: myApprovalRequest.CreatedAt,
 				User: dto.UserDocumentResponse{
 					ID:    myApprovalRequest.Document.User.ID,
 					Name:  myApprovalRequest.Document.User.Name,
