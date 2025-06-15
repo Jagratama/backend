@@ -340,8 +340,12 @@ func (s *DocumentService) ApprovalAction(ctx context.Context, slug string, userI
 
 			approvalData = approval
 			approvalData.Status = approvalRequest.Status
-			approvalData.Note = approvalRequest.Note
 			approvalData.ResolvedAt = time.Now()
+			approvalData.Note = approvalRequest.Note
+			if approvalRequest.Status == dto.StatusApprove {
+				approvalData.Note = nil // Clear note if approved
+			}
+
 			if approvalRequest.FileID != 0 {
 				if requiresSignature {
 					fileID := uint(approvalRequest.FileID)
@@ -656,6 +660,7 @@ func (s *DocumentService) GetDocumentApprovalReviewDetail(ctx context.Context, s
 
 	return &dto.ApprovalDocumentDetailResponse{
 		Title:             document.Title,
+		Note:              userApprovalReqest.Note,
 		File:              config.GetEnv("AWS_S3_URL", "") + filePath,
 		RequiresSignature: requiresSignature,
 		IsReviewer:        IsReviewer,
@@ -716,7 +721,6 @@ func (s *DocumentService) ReuploadDocument(ctx context.Context, slug string, app
 
 	fileIDUint := uint(fileID)
 	approvalRequest.FileIDReupload = &fileIDUint
-	approvalRequest.Note = nil // reset note when reuploading
 	approvalRequest.Status = dto.StatusPending
 	err = s.approvalRequestRepository.UpdateApprovalRequest(ctx, int(document.ID), int(approvalRequest.UserID), approvalRequest)
 	if err != nil {
