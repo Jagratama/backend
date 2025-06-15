@@ -12,9 +12,9 @@ var DB *gorm.DB
 
 func ConnectDB() (*gorm.DB, error) {
 	mode := GetEnv("APP_ENV", "development")
-	dsn := fmt.Sprintf("host=%s user=%s dbname=%s port=%s sslmode=disable TimeZone=Asia/Jakarta", GetEnv("DB_HOST", "localhost"), GetEnv("DB_USER", ""), GetEnv("DB_NAME", ""), GetEnv("DB_PORT", ""))
+	dsn := fmt.Sprintf("host=%s user=%s dbname=%s port=%s sslmode=disable TimeZone=UTC", GetEnv("DB_HOST", "localhost"), GetEnv("DB_USER", ""), GetEnv("DB_NAME", ""), GetEnv("DB_PORT", ""))
 	if mode == "production" {
-		dsn = fmt.Sprintf("host=%s user=%s dbname=%s port=%s password=%s sslmode=require TimeZone=Asia/Jakarta", GetEnv("DB_HOST", "localhost"), GetEnv("DB_USER", ""), GetEnv("DB_NAME", ""), GetEnv("DB_PORT", ""), GetEnv("DB_PASSWORD", ""))
+		dsn = fmt.Sprintf("host=%s user=%s dbname=%s port=%s password=%s sslmode=require TimeZone=UTC", GetEnv("DB_HOST", "localhost"), GetEnv("DB_USER", ""), GetEnv("DB_NAME", ""), GetEnv("DB_PORT", ""), GetEnv("DB_PASSWORD", ""))
 	}
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
