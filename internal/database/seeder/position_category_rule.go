@@ -92,7 +92,7 @@ func (s PositionCategoryRuleSeeder) Run(db *gorm.DB) error {
 		{ID: 79, CategoryID: 11, PositionID: 7, NeedSignature: false, Description: "surat ukm", DisplayOrder: 5},
 		{ID: 80, CategoryID: 11, PositionID: 8, NeedSignature: false, Description: "surat ukm", DisplayOrder: 6},
 		{ID: 81, CategoryID: 11, PositionID: 9, NeedSignature: true, Description: "surat ukm", DisplayOrder: 7},
-		{ID: 82, CategoryID: 12, PositionID: 19, NeedSignature: true, Description: "surat sbh", DisplayOrder: 1},
+		{ID: 82, CategoryID: 12, PositionID: 3, NeedSignature: true, Description: "surat sbh", DisplayOrder: 1},
 		{ID: 83, CategoryID: 12, PositionID: 4, NeedSignature: false, Description: "surat sbh", DisplayOrder: 2},
 		{ID: 84, CategoryID: 12, PositionID: 5, NeedSignature: false, Description: "surat sbh", DisplayOrder: 3},
 		{ID: 85, CategoryID: 12, PositionID: 6, NeedSignature: false, Description: "surat sbh", DisplayOrder: 4},
