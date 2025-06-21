@@ -47,7 +47,7 @@ Before running this project, make sure you have:
 
 ## 📄 Environment Variables (`.env`)
 
-You need to set up an `.env` file, the template is provided in `.env.example`. Copy it to `.env` and fill in the required values:
+You need to set up an `.env` file, the template is provided in `.env.example`.
 
 ---
 
